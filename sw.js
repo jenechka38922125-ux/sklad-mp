@@ -1,73 +1,74 @@
-const CACHE_NAME = 'sklad-mp-v3';
-
-// Базовые файлы оболочки приложения с учетом пути репозитория /sklad-mp/
-const ASSETS_TO_CACHE = [
-  '/sklad-mp/',
+const CACHE_NAME = 'sklad-mp-v4'; // Увеличил версию кеша, чтобы перебить старую
+const urlsToCache = [
   '/sklad-mp/index.html',
   '/sklad-mp/manifest.json',
   '/sklad-mp/icon.png'
 ];
 
-// Установка: кешируем каркас приложения и активируем сразу
+// Установка: кешируем только статику (иконки, шрифты), но НЕ HTML
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    }).then(() => self.skipWaiting())
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        // Кешируем только то, что не меняется
+        return cache.addAll(urlsToCache);
+      })
+      .then(() => self.skipWaiting())
   );
 });
 
-// Активация: удаляем старые версии кеша и перехватываем управление вкладками
+// Активация: удаляем ВСЕ старые версии кеша
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
       );
-    }).then(() => self.clients.claim())
+    }).then(() => self.clients.claim()) // Заставляем новый SW взять управление сразу
   );
 });
 
-// Обработка запросов
+// Обработка запросов (самое важное)
 self.addEventListener('fetch', (event) => {
-  const url = event.request.url;
+  const url = new URL(event.request.url);
 
-  // 1. Все запросы к Google Apps Script / Google API направляем только в сеть
-  if (url.includes('script.google.com') || url.includes('googleusercontent.com')) {
-    event.respondWith(fetch(event.request));
-    return;
-  }
-
-  // 2. POST, PUT, DELETE запросы нельзя кэшировать — отправляем напрямую в сеть
-  if (event.request.method !== 'GET') {
-    event.respondWith(fetch(event.request));
-    return;
-  }
-
-  // 3. Для остальных GET-запросов: Network First (сначала сеть, при сбое — кэш)
-  // Это гарантирует, что пользователь всегда видит актуальные данные из GitHub
-  event.respondWith(
-    fetch(event.request)
-      .then((networkResponse) => {
-        // Если ответ валидный, сохраняем копию в кэш
-        if (networkResponse && networkResponse.status === 200) {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-        }
-        return networkResponse;
+  // 1. HTML-страницы НЕ кешируем. Всегда берем из сети, чтобы видеть обновления.
+  if (event.request.mode === 'navigate' || url.pathname.endsWith('.html')) {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        // Если сети нет, можно вернуть заглушку, но лучше не возвращать ничего,
+        // чтобы пользователь видел ошибку и обновил страницу, когда появится сеть.
+        return caches.match('/sklad-mp/index.html'); 
       })
-      .catch(() => {
-        // Если нет интернета или ошибка сети — отдаём из кэша
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          // Если запрашивалась HTML-страница, возвращаем главный экран
-          if (event.request.headers.get('accept')?.includes('text/html')) {
-            return caches.match('/sklad-mp/index.html');
-          }
+    );
+    return;
+  }
+
+  // 2. Google API (ваши таблицы) всегда в сеть
+  if (url.hostname === 'script.google.com') {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // 3. Для всего остального (картинки, шрифты) — кеш
+  event.respondWith(
+    caches.match(event.request)
+      .then((cachedResponse) => {
+        // Если есть в кеше — отдаем из кеша
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        // Если нет — тянем из сети
+        return fetch(event.request).then((networkResponse) => {
+          // Кладем в кеш копию ответа
+          return caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, networkResponse.clone());
+            return networkResponse;
+          });
         });
       })
   );
