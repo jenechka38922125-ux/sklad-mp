@@ -1,17 +1,17 @@
 {
   "name": "E-COM ПФЦ",
-  "short_name": "E-COM ПФЦ",
+  "short_name": "ПФЦ",
   "description": "Учёт склада и система управления сменами E-COM ПФЦ",
   "id": "/sklad-mp/",
-  "start_url": "/sklad-mp/",
+  "start_url": "/sklad-mp/index.html",
   "scope": "/sklad-mp/",
-  "display": "standalone",
+  "display": "fullscreen",
   "display_override": [
+    "fullscreen",
     "window-controls-overlay",
-    "standalone",
-    "fullscreen"
+    "standalone"
   ],
-  "background_color": "#ffffff",
+  "background_color": "#1a73e8",
   "theme_color": "#1a73e8",
   "orientation": "portrait-primary",
   "icons": [
@@ -35,5 +35,19 @@
     }
   ],
   "categories": ["business", "productivity"],
-  "lang": "ru"
+  "lang": "ru",
+  "shortcuts": [
+    {
+      "name": "Запись на смену",
+      "short_name": "Запись",
+      "url": "/sklad-mp/index.html#regTab",
+      "icons": [{ "src": "/sklad-mp/icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "КИЗы",
+      "short_name": "КИЗы",
+      "url": "/sklad-mp/index.html#kizTab",
+      "icons": [{ "src": "/sklad-mp/icon.png", "sizes": "192x192" }]
+    }
+  ]
 }
