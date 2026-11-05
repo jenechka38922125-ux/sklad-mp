@@ -2,13 +2,14 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <title>Склад МП</title>
+  <title>E-COM ПФЦ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <link rel="manifest" href="/sklad-mp/manifest.json">
   <meta name="theme-color" content="#1a73e8">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="E-COM ПФЦ">
   <link rel="apple-touch-icon" href="/sklad-mp/icon.png">
 
   <style>
@@ -62,9 +63,7 @@
 
     .btn { padding: 10px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
     .btn-primary { background-color: var(--success); color: white; }
-    .btn-primary:hover { background-color: var(--success-hover); }
     .btn-blue { background-color: var(--primary); color: white; }
-    .btn-blue:hover { background-color: var(--primary-hover); }
     .btn-secondary { background-color: var(--danger); color: white; }
 
     .filter-panel { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 14px; }
@@ -106,7 +105,7 @@
   <div id="authOverlay">
     <div class="auth-card">
       <div style="font-size: 38px; margin-bottom: 6px;">🔐</div>
-      <div class="auth-title">Склад МП</div>
+      <div class="auth-title">E-COM ПФЦ</div>
       <div class="auth-subtitle">Введите персональный PIN-код</div>
       <form onsubmit="event.preventDefault(); verifyPin();">
         <input type="password" id="pinInput" class="pin-input" maxlength="4" pattern="[0-9]*" inputmode="numeric" placeholder="••••" autofocus required>
@@ -895,7 +894,6 @@
           alertBox.style.display = "block";
           
           if (res.status === 'exact') {
-            // Точное совпадение
             isFioVerified = true;
             alertBox.className = "status-alert alert-success";
             alertBox.textContent = `✓ Найден в справочнике: ${res.matchedName}`;
@@ -904,7 +902,6 @@
             }
             showToast("✓ Сотрудник успешно найден в справочнике!");
           } else if (res.status === 'fuzzy') {
-            // Найдено похожее соответствие
             document.getElementById("verifyCandidateHeader").textContent = "⚠️ Найдено совпадение в справочнике";
             document.getElementById("verifyCandidateBody").innerHTML = `
               Введено пользователем: <b>${escapeHtml(fio)}</b><br><br>
@@ -918,7 +915,6 @@
             `;
             openModal("verifyCandidateModal");
           } else {
-            // Новый сотрудник
             document.getElementById("verifyCandidateHeader").textContent = "👤 Новый сотрудник";
             document.getElementById("verifyCandidateBody").innerHTML = `
               Сотрудник: <b>${escapeHtml(fio)}</b><br><br>
@@ -1002,7 +998,6 @@
       var fio = document.getElementById("regFio").value.trim();
       if (!fio) { showToast("Укажите ФИО!", true); return; }
 
-      // Если сотрудник ещё не проверялся кнопкой, предлагаем проверить
       if (!isFioVerified) {
         if (!confirm("Сотрудник ещё не проверен по справочнику. Нажмите 'ОК', чтобы запустить быструю проверку перед записью.")) {
           return;
@@ -1223,7 +1218,7 @@
         renderStaffTable(currentEmployees);
         updateStaffSummary(currentEmployees, date, shift);
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red; padding:18px;">Ошибка: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:color; red; padding:18px;">Ошибка: ${err.message}</td></tr>`;
       }
     }
 
@@ -1478,4 +1473,4 @@
     };
   </script>
 </body>
-</html>
+</html> 
