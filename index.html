@@ -1598,33 +1598,36 @@
       return String(text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
-    window.onload = async function() {
-      checkAuthOnStart();
-      try {
-        const d = await callApi('getInitialData');
-        if (d) {
-          if (d.defaultDate) { document.getElementById("kizDate").value = d.defaultDate; document.getElementById("camDate").value = d.defaultDate; }
-          if (d.defaultShift) document.getElementById("kizShift").value = d.defaultShift;
-          if (d.todayTotalTime) document.getElementById("accumulatedTimeValue").textContent = d.todayTotalTime;
-          if (d.constructorsDetailed) ALL_CONSTRUCTORS_DATA = d.constructorsDetailed;
-          if (d.constructors) updateConstructorsDropdown(d.constructors);
-recalculateComplexity();
-} catch (e) {}
-};
+      window.onload = async function() {
+    checkAuthOnStart();
+    try {
+      const d = await callApi('getInitialData');
+      if (d) {
+        if (d.defaultDate) { 
+          document.getElementById("kizDate").value = d.defaultDate;
+          document.getElementById("camDate").value = d.defaultDate;
+        }
+        if (d.defaultShift) document.getElementById("kizShift").value = d.defaultShift;
+        if (d.todayTotalTime) document.getElementById("accumulatedTimeValue").textContent = d.todayTotalTime;
+        if (d.constructorsDetailed) ALL_CONSTRUCTORS_DATA = d.constructorsDetailed;
+        if (d.constructors) updateConstructorsDropdown(d.constructors);
+        recalculateComplexity();
+      }
+    } catch (e) {}
+  };
 
-
-// Слушатели для новых кнопок
+// Слушатели для новых кнопок камер
 document.querySelectorAll('#camTypeButtons .cam-type-btn').forEach(btn => {
-  btn.addEventListener('click', function() {
-    this.parentNode.querySelectorAll('.cam-type-btn').forEach(b => b.classList.remove('active'));
-    this.classList.add('active');
+  btn.addEventListener('click', () => {
+    btn.parentNode.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
   });
 });
 
 document.querySelectorAll('#camResultButtons .cam-result-btn').forEach(btn => {
-  btn.addEventListener('click', function() {
-    this.parentNode.querySelectorAll('.cam-result-btn').forEach(b => b.classList.remove('active'));
-    this.classList.add('active');
+  btn.addEventListener('click', () => {
+    btn.parentNode.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
   });
 });
 
