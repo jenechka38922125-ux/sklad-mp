@@ -14,14 +14,14 @@
   <style>
     :root {
       --primary: #1a73e8; --primary-hover: #1557b0;
-      --success: #28a745; --success-hover: #218838;
+      --success: #107c41; --success-hover: #0b5a2f;
       --danger: #dc3545; --danger-hover: #c82333;
       --warning: #f2994a; --bg: #f4f6f9; --card-bg: #ffffff;
-      --text: #202124; --text-muted: #5f6368; --border: #dadce0; --selected-bg: #e8f0fe;
+      --text: #1e293b; --text-muted: #64748b; --border: #cbd5e1; --selected-bg: #e8f0fe;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding: 10px; display: flex; justify-content: center; }
-    .container { width: 100%; max-width: 860px; background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 30px; display: none; }
+    body { background-color: var(--bg); color: var(--text); padding: 8px; display: flex; justify-content: center; }
+    .container { width: 100%; max-width: 900px; background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 30px; display: none; }
     
     /* Авторизация */
     #authOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 5000; padding: 20px; }
@@ -31,56 +31,68 @@
     .pin-input { font-size: 26px; letter-spacing: 12px; text-align: center; font-weight: 800; width: 180px; padding: 8px 12px; border: 2px solid var(--border); border-radius: 8px; outline: none; margin: 0 auto 16px; display: block; }
     .pin-input:focus { border-color: var(--primary); }
 
-    .user-bar { display: flex; justify-content: space-between; align-items: center; background: #f1f3f4; padding: 8px 14px; font-size: 12.5px; border-bottom: 1px solid var(--border); }
-    .btn-logout { background: none; border: 1px solid #dadce0; border-radius: 5px; padding: 4px 8px; font-size: 11px; cursor: pointer; color: #5f6368; font-weight: 600; }
+    .user-bar { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 8px 14px; font-size: 12.5px; border-bottom: 1px solid var(--border); }
+    .btn-logout { background: none; border: 1px solid var(--border); border-radius: 5px; padding: 4px 8px; font-size: 11px; cursor: pointer; color: #5f6368; font-weight: 600; }
 
-    /* Вкладки */
-    .nav-tabs { display: flex; background: #e8eaed; border-bottom: 2px solid var(--border); overflow-x: auto; }
-    .nav-tab { flex: 1; min-width: 120px; text-align: center; padding: 13px 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-muted); border-bottom: 3px solid transparent; white-space: nowrap; }
-    .nav-tab.active { background: var(--card-bg); color: var(--primary); border-bottom-color: var(--primary); }
-    .tab-content { display: none; padding: 18px; }
+    /* УРОВЕНЬ 1: Главные модули */
+    .module-nav { display: flex; background: #0f172a; padding: 4px; gap: 4px; }
+    .module-btn { flex: 1; text-align: center; padding: 12px 10px; font-size: 14px; font-weight: 700; cursor: pointer; color: #94a3b8; border: none; background: transparent; border-radius: 8px; transition: 0.2s; }
+    .module-btn.active { background: #1e293b; color: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+
+    /* УРОВЕНЬ 2: Подвкладки */
+    .sub-nav-tabs { display: flex; background: #e2e8f0; border-bottom: 2px solid var(--border); overflow-x: auto; }
+    .sub-nav-tab { flex: 1; min-width: 110px; text-align: center; padding: 11px 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-muted); border-bottom: 3px solid transparent; white-space: nowrap; }
+    .sub-nav-tab.active { background: var(--card-bg); color: var(--primary); border-bottom-color: var(--primary); }
+    
+    .tab-content { display: none; padding: 16px; }
     .tab-content.active { display: block; }
 
-    .form-group { margin-bottom: 14px; }
-    label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #3c4043; }
+    .form-group { margin-bottom: 12px; }
+    label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600; color: #334155; }
     input[type="text"], input[type="number"], input[type="date"], input[type="time"], select, textarea {
-      width: 100%; padding: 10px 12px; font-size: 14px; border: 1px solid var(--border); border-radius: 6px; outline: none; background-color: #fff;
+      width: 100%; padding: 9px 12px; font-size: 14px; border: 1px solid var(--border); border-radius: 6px; outline: none; background-color: #fff;
     }
     input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
     .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
     
     .table-buttons-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 4px; }
-    .btn-toggle { padding: 9px 0; font-size: 14px; font-weight: 700; border: 1px solid var(--border); background-color: #f8f9fa; color: #333; border-radius: 6px; cursor: pointer; text-align: center; }
+    .btn-toggle { padding: 8px 0; font-size: 13px; font-weight: 700; border: 1px solid var(--border); background-color: #f8fafc; color: #333; border-radius: 6px; cursor: pointer; text-align: center; }
     .btn-toggle.active { background-color: var(--primary); color: #fff; border-color: var(--primary); }
-    .btn-group-row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .btn-group-row .btn-toggle { flex: 1; padding: 10px 8px; min-width: 100px; font-size: 13px; }
 
-    .btn { padding: 11px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn { padding: 10px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
     .btn-primary { background-color: var(--success); color: white; }
-    .btn-primary:hover { background-color: var(--success-hover); }
     .btn-blue { background-color: var(--primary); color: white; }
-    .btn-blue:hover { background-color: var(--primary-hover); }
     .btn-secondary { background-color: var(--danger); color: white; }
 
-    .filter-panel { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 16px; }
-    .table-container { overflow-x: auto; margin-top: 10px; border-radius: 8px; border: 1px solid var(--border); max-height: 420px; }
+    .filter-panel { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 14px; }
+    .table-container { overflow-x: auto; margin-top: 8px; border-radius: 8px; border: 1px solid var(--border); max-height: 420px; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th, td { padding: 9px 10px; border-bottom: 1px solid var(--border); text-align: left; }
-    th { background: #f1f3f4; color: #3c4043; font-weight: 600; position: sticky; top: 0; z-index: 2; }
-    tr:hover { background: #f8f9fa; }
-    .badge-count { display: inline-block; padding: 5px 12px; background: var(--selected-bg); color: var(--primary); border-radius: 12px; font-size: 13px; font-weight: 700; }
+    th { background: #f1f5f9; color: #475569; font-weight: 600; position: sticky; top: 0; z-index: 2; }
+    tr:hover { background: #f8fafc; }
+    .badge-count { display: inline-block; padding: 4px 10px; background: var(--selected-bg); color: var(--primary); border-radius: 12px; font-size: 12px; font-weight: 700; }
     
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 5px; font-size: 11px; font-weight: 700; }
+    .badge-shift-day { background: #fef3c7; color: #92400e; }
+    .badge-shift-night { background: #e0e7ff; color: #3730a3; }
+    .badge-payout { background: #fef9c3; color: #854d0e; }
+
     .status-alert { padding: 10px 14px; border-radius: 8px; margin-top: 8px; font-size: 13px; font-weight: 600; display: none; }
     .alert-danger { background: #fce8e6; color: #c5221f; border: 1px solid #fad2cf; }
     .alert-warning { background: #fef7e0; color: #b06000; border: 1px solid #feefc3; }
     .alert-success { background: #e6f4ea; color: #137333; border: 1px solid #ceead6; }
 
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 6000; align-items: center; justify-content: center; }
-    .modal { background: white; padding: 20px; border-radius: 12px; max-width: 440px; width: 90%; }
+    .modal { background: white; padding: 20px; border-radius: 12px; max-width: 480px; width: 92%; max-height: 90vh; overflow-y: auto; }
     .modal-header { font-weight: bold; font-size: 16px; margin-bottom: 12px; }
     .modal-body { font-size: 13.5px; line-height: 1.5; color: #333; margin-bottom: 16px; }
     .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+    .compare-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 14px; font-size: 12.5px; }
+    .compare-item { display: flex; justify-content: space-between; padding: 4px 0; }
+    .old-val { color: var(--danger); text-decoration: line-through; }
+    .new-val { color: var(--success); font-weight: 700; }
 
     #toast { visibility: hidden; min-width: 280px; max-width: 90%; background-color: #323232; color: #fff; text-align: center; border-radius: 8px; padding: 12px 18px; position: fixed; z-index: 7000; bottom: 24px; left: 50%; transform: translateX(-50%); font-size: 14px; }
     #toast.show { visibility: visible; }
@@ -88,7 +100,7 @@
 </head>
 <body>
 
-  <!-- Авторизация -->
+  <!-- Авторизация по PIN -->
   <div id="authOverlay">
     <div class="auth-card">
       <div style="font-size: 38px; margin-bottom: 6px;">🔐</div>
@@ -108,16 +120,29 @@
       <button type="button" class="btn-logout" onclick="logout()">Сменить роль ➔</button>
     </div>
 
-    <!-- Навигация (6 вкладок) -->
-    <div class="nav-tabs">
-      <div class="nav-tab active" id="tabBtnKiz" onclick="switchTab('kizTab', this)">📦 КИЗы</div>
-      <div class="nav-tab" id="tabBtnCamera" onclick="switchTab('cameraTab', this)">🎥 Камеры</div>
-      <div class="nav-tab" id="tabBtnCalc" onclick="switchTab('calcTab', this)">⚙️ Калькулятор</div>
-      <div class="nav-tab" id="tabBtnReg" onclick="switchTab('regTab', this)">📝 Запись на смену</div>
-      <div class="nav-tab" id="tabBtnShiftList" onclick="switchTab('shiftListTab', this)">📋 Список смены</div>
-      <div class="nav-tab" id="tabBtnStaff" onclick="switchTab('staffTab', this)">👥 Смены и статусы</div>
+    <!-- УРОВЕНЬ 1: ГЛАВНЫЕ МОДУЛИ -->
+    <div class="module-nav">
+      <button type="button" class="module-btn active" id="btnModuleSklad" onclick="switchModule('sklad')">🏭 СКЛАД МП</button>
+      <button type="button" class="module-btn" id="btnModuleHr" onclick="switchModule('hr')">👥 HR / ПОДБОР</button>
     </div>
 
+    <!-- УРОВЕНЬ 2: ПОДВКЛАДКИ СКЛАДА МП -->
+    <div class="sub-nav-tabs" id="subTabsSklad">
+      <div class="sub-nav-tab active" onclick="switchSubTab('kizTab', this)">📦 КИЗы</div>
+      <div class="sub-nav-tab" onclick="switchSubTab('cameraTab', this)">🎥 Камеры</div>
+      <div class="sub-nav-tab" onclick="switchSubTab('calcTab', this)">⚙️ Калькулятор</div>
+    </div>
+
+    <!-- УРОВЕНЬ 2: ПОДВКЛАДКИ HR -->
+    <div class="sub-nav-tabs" id="subTabsHr" style="display: none;">
+      <div class="sub-nav-tab active" onclick="switchSubTab('checkAdminTab', this)">📋 Чек-лист</div>
+      <div class="sub-nav-tab" onclick="switchSubTab('referralTab', this)">🤝 Приведи друга</div>
+      <div class="sub-nav-tab" onclick="switchSubTab('regTab', this)">📝 Запись на смену</div>
+      <div class="sub-nav-tab" onclick="switchSubTab('shiftListTab', this)">📋 Список смены</div>
+      <div class="sub-nav-tab" onclick="switchSubTab('staffTab', this)">👥 Смены и статусы</div>
+    </div>
+
+    <!-- ==================== ЭКРАНЫ СКЛАДА МП ==================== -->
     <!-- 1. КИЗЫ -->
     <div id="kizTab" class="tab-content active">
       <form id="kizForm" onsubmit="event.preventDefault(); submitKiz();">
@@ -230,7 +255,54 @@
       </form>
     </div>
 
-    <!-- 4. ЗАПИСЬ НА СМЕНУ -->
+    <!-- ==================== ЭКРАНЫ HR / ПОДБОР ==================== -->
+    <!-- 4. ЧЕК-ЛИСТ (АДМИНАМ) -->
+    <div id="checkAdminTab" class="tab-content">
+      <div style="background:#fff; border-left:6px solid var(--success); padding:12px 16px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.04); margin-bottom:14px;">
+        <div style="font-size:12px; text-transform:uppercase; font-weight:700; color:var(--text-muted);">Актуальные даты смен:</div>
+        <div id="checkAdminDatesText" style="font-size:15px; font-weight:700; margin-top:4px;">Загрузка дат...</div>
+      </div>
+      <div class="filter-panel" style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-toggle active" id="btnCheckShiftNight" onclick="setChecklistShiftFilter('ночь')">🌙 Только Ночь</button>
+          <button type="button" class="btn-toggle" id="btnCheckShiftDay" onclick="setChecklistShiftFilter('день')">☀️ Только День</button>
+        </div>
+        <button type="button" class="btn-small-refresh" onclick="loadChecklistData()">🔄 Обновить</button>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Вакансия</th><th>Смена</th><th>Кол-во (D)</th><th>Оплата (I)</th><th>График (J)</th><th>Повышенная (K)</th><th>Действие</th>
+            </tr>
+          </thead>
+          <tbody id="checkAdminTbody"><tr><td colspan="7" style="text-align:center; padding:18px;">Загрузка данных...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 5. ПРИВЕДИ ДРУГА -->
+    <div id="referralTab" class="tab-content">
+      <div style="background:#fff; border-left:6px solid #0284c7; padding:12px 16px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.04); margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-size:12px; text-transform:uppercase; font-weight:700; color:var(--text-muted);">Выплаты по акции «Приведи друга»</div>
+          <div style="font-size:14px; font-weight:700; margin-top:2px;">Сотрудники со статусом «К выплате»</div>
+        </div>
+        <button type="button" class="btn-small-refresh" onclick="loadReferralsData()">🔄 Обновить</button>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Кто привёл</th><th>Кого привёл</th><th>Смен</th><th>Премия 1</th><th>Премия 2</th><th>Статус</th><th>Действие</th>
+            </tr>
+          </thead>
+          <tbody id="referralTbody"><tr><td colspan="7" style="text-align:center; padding:18px;">Загрузка рефералов...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 6. ЗАПИСЬ НА СМЕНУ -->
     <div id="regTab" class="tab-content">
       <form id="regForm" onsubmit="event.preventDefault(); submitRegistration();">
         <div class="row-2">
@@ -270,16 +342,16 @@
         <button type="submit" id="btnRegSubmit" class="btn btn-primary" style="width:100%; margin-top:8px;">✓ Записать на смену</button>
       </form>
 
-      <div style="margin-top:20px; background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:12px;">
+      <div style="margin-top:16px; background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:12px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
           <label style="font-weight:700; margin:0;">📋 Текст для кандидата (Генератор B7):</label>
           <button type="button" class="btn-logout" onclick="copyGenMessage()">Скопировать</button>
         </div>
-        <textarea id="genMessageBox" rows="5" readonly placeholder="Выберите дату выше для генерации текста сообщения..."></textarea>
+        <textarea id="genMessageBox" rows="5" readonly placeholder="Выберите дату выше..."></textarea>
       </div>
     </div>
 
-    <!-- 5. СПИСОК СМЕНЫ -->
+    <!-- 7. СПИСОК СМЕНЫ -->
     <div id="shiftListTab" class="tab-content">
       <div class="filter-panel">
         <div class="row-3">
@@ -288,10 +360,10 @@
           <div class="form-group" style="margin-bottom:0;"><label>Вакансия:</label><select id="listVac" onchange="loadShiftList()"><option value="все">Все вакансии</option></select></div>
         </div>
         <div class="form-group" style="margin-top:10px; margin-bottom:0;">
-          <input type="text" id="globalSearchInput" placeholder="🔍 Глобальный поиск по всем сменам (ФИО или телефон)..." oninput="onGlobalSearchInput(this.value)">
+          <input type="text" id="globalSearchInput" placeholder="🔍 Поиск по всем сменам (ФИО или телефон)..." oninput="onGlobalSearchInput(this.value)">
         </div>
         <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
-          <button type="button" class="btn-small-refresh" onclick="loadShiftList()">🔄 Обновить список</button>
+          <button type="button" class="btn-small-refresh" onclick="loadShiftList()">🔄 Обновить</button>
           <span id="shiftListBadge" class="badge-count">0 чел.</span>
         </div>
       </div>
@@ -305,7 +377,7 @@
       </div>
     </div>
 
-    <!-- 6. СМЕНЫ И СТАТУСЫ -->
+    <!-- 8. СМЕНЫ И СТАТУСЫ -->
     <div id="staffTab" class="tab-content">
       <div class="filter-panel">
         <div class="row-2">
@@ -313,7 +385,7 @@
           <div class="form-group" style="margin-bottom:0;"><label>Дата смены:</label><select id="selDate" onchange="loadEmployees()"></select></div>
         </div>
         <div class="form-group" style="margin-top:10px; margin-bottom:0;">
-          <input type="text" id="staffSearchInput" placeholder="🔍 Поиск в смене (ФИО или телефон)..." oninput="onStaffSearchChanged()">
+          <input type="text" id="staffSearchInput" placeholder="🔍 Поиск в текущей смене..." oninput="onStaffSearchChanged()">
         </div>
         <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
           <button type="button" class="btn-small-refresh" onclick="loadEmployees()">🔄 Обновить</button>
@@ -338,14 +410,57 @@
     </div>
   </div>
 
-  <!-- Модальное окно смены статуса -->
+  <!-- Модальное окно: Редактирование Чек-листа -->
+  <div id="editChecklistModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header" id="modalChecklistTitle">Редактирование вакансии</div>
+      <div class="form-group"><label>Кол-во человек (Колонка D):</label><input type="text" id="inputCheckQty"></div>
+      <div class="form-group"><label>Стандарт оплата (Колонка I):</label><input type="text" id="inputCheckStandardPay"></div>
+      <div class="form-group"><label>График (Колонка J):</label><input type="text" id="inputCheckSchedule"></div>
+      <div class="form-group"><label>Оплата повышенная (Колонка K):</label><input type="text" id="inputCheckHighPay"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('editChecklistModal')">Отмена</button>
+        <button type="button" class="btn btn-blue" onclick="openChecklistConfirm()">Далее ➔</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Подтверждение Чек-листа -->
+  <div id="confirmChecklistModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">Проверка и подтверждение изменений</div>
+      <div class="compare-box" id="checklistCompareBox"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('confirmChecklistModal')">Назад</button>
+        <button type="button" class="btn btn-primary" id="btnSaveChecklistFinal" onclick="saveChecklistFinal()">✓ Внести изменения</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Выплата Приведи друга -->
+  <div id="referralPayoutModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">Подтверждение выплаты</div>
+      <div class="modal-body" id="referralTargetText"></div>
+      <div class="form-group">
+        <label>ФИО ответственного за выплату (Обязательно):</label>
+        <input type="text" id="inputReferralManager" placeholder="Иванов И.И." oninput="toggleReferralBtn()">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('referralPayoutModal')">Отмена</button>
+        <button type="button" class="btn btn-primary" id="btnSaveReferralFinal" disabled onclick="saveReferralFinal()">✓ Зафиксировать выплату</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Статус сотрудника -->
   <div id="modalOverlay" class="modal-overlay">
     <div class="modal">
       <div class="modal-header">✏️ Изменение статуса сотрудника</div>
       <div class="modal-body">
         <div>Сотрудник: <b id="mFio" style="color:var(--primary);"></b></div>
         <div style="margin-top:4px;">Вакансия: <b id="mVac"></b></div>
-        <div style="margin-top:4px; margin-bottom:12px;">Текущий: <span id="mCurrentStatus" style="font-weight:600;"></span></div>
+        <div style="margin-top:4px; margin-bottom:10px;">Текущий: <span id="mCurrentStatus" style="font-weight:600;"></span></div>
         <div class="form-group">
           <label>Новый статус:</label>
           <select id="mStatusSelect" onchange="onStatusSelectChange()">
@@ -365,13 +480,13 @@
         <div class="form-group" id="subGroupCsDate" style="display:none;"><label>Дата окончания ЧС:</label><input type="text" id="mCsDate" placeholder="ДД.ММ.ГГГГ"></div>
       </div>
       <div class="modal-actions">
-        <button type="button" class="btn btn-secondary" onclick="closeModal(false)">Отмена</button>
-        <button type="button" class="btn btn-blue" onclick="closeModal(true)">Подтвердить</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modalOverlay')">Отмена</button>
+        <button type="button" class="btn btn-blue" onclick="closeModalStatus(true)">Подтвердить</button>
       </div>
     </div>
   </div>
 
-  <!-- Модальное окно перевода на вакансию -->
+  <!-- Модальное окно: Перевод вакансии -->
   <div id="moveModalOverlay" class="modal-overlay">
     <div class="modal">
       <div class="modal-header">🔄 Перевод на другую вакансию</div>
@@ -384,7 +499,7 @@
         </div>
       </div>
       <div class="modal-actions">
-        <button type="button" class="btn btn-secondary" onclick="closeMoveModal(false)">Отмена</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('moveModalOverlay')">Отмена</button>
         <button type="button" class="btn btn-blue" onclick="closeMoveModal(true)">Перевести</button>
       </div>
     </div>
@@ -395,11 +510,13 @@
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyi-Nhx8lEljyYp1zKTjFfDLfUEyaTjJVyrHZOHIEerTVGZY9ZaJEvr9HOmWpHpWapD/exec";
 
-    // 6998 - HR (подбор), 4201 - Руководитель
+    // 6998 - HR (только HR), 4201 - Руководитель (всё)
     const ROLES_CONFIG = {
-      "6998": { role: "HR", tabs: ["regTab", "shiftListTab", "staffTab"] },
-      "4201": { role: "Руководитель", tabs: ["kizTab", "cameraTab", "calcTab", "regTab", "shiftListTab", "staffTab"] }
+      "6998": { role: "HR", modules: ["hr"] },
+      "4201": { role: "Руководитель", modules: ["sklad", "hr"] }
     };
+
+    let activeModule = 'sklad';
 
     function checkAuthOnStart() {
       const savedPin = localStorage.getItem("sklad_mp_pin");
@@ -429,15 +546,49 @@
       document.getElementById("mainContainer").style.display = "block";
       document.getElementById("userRoleBadge").textContent = cfg.role;
 
-      const tabs = ["kizTab", "cameraTab", "calcTab", "regTab", "shiftListTab", "staffTab"];
-      tabs.forEach(t => {
-        const btn = document.getElementById("tabBtn" + t.charAt(0).toUpperCase() + t.slice(1).replace("Tab", ""));
-        if (btn) btn.style.display = cfg.tabs.includes(t) ? "block" : "none";
-      });
+      const hasSklad = cfg.modules.includes('sklad');
+      document.getElementById("btnModuleSklad").style.display = hasSklad ? 'block' : 'none';
+      document.getElementById("btnModuleHr").style.display = 'block';
 
-      const firstTab = cfg.tabs[0];
-      const btnMap = { "kizTab": "tabBtnKiz", "regTab": "tabBtnReg" };
-      switchTab(firstTab, document.getElementById(btnMap[firstTab] || "tabBtnStaff"));
+      if (!hasSklad) {
+        switchModule('hr');
+      } else {
+        switchModule('sklad');
+      }
+    }
+
+    function switchModule(mod) {
+      activeModule = mod;
+      document.getElementById("btnModuleSklad").classList.toggle("active", mod === 'sklad');
+      document.getElementById("btnModuleHr").classList.toggle("active", mod === 'hr');
+
+      document.getElementById("subTabsSklad").style.display = (mod === 'sklad') ? 'flex' : 'none';
+      document.getElementById("subTabsHr").style.display = (mod === 'hr') ? 'flex' : 'none';
+
+      if (mod === 'sklad') {
+        const firstTab = document.querySelector("#subTabsSklad .sub-nav-tab");
+        switchSubTab('kizTab', firstTab);
+      } else {
+        const firstTab = document.querySelector("#subTabsHr .sub-nav-tab");
+        switchSubTab('checkAdminTab', firstTab);
+      }
+    }
+
+    function switchSubTab(tabId, el) {
+      document.querySelectorAll(".tab-content").forEach(tc => tc.classList.remove("active"));
+      const parentNav = el ? el.parentElement : document;
+      parentNav.querySelectorAll(".sub-nav-tab").forEach(nt => nt.classList.remove("active"));
+      
+      const targetContent = document.getElementById(tabId);
+      if (targetContent) targetContent.classList.add("active");
+      if (el) el.classList.add("active");
+
+      // Ленивая подгрузка
+      if (tabId === 'checkAdminTab' && checklistRows.length === 0) loadChecklistData();
+      if (tabId === 'referralTab') loadReferralsData();
+      if (tabId === 'regTab' && staffInitData.dayDates.length === 0) loadStaffInitial();
+      if (tabId === 'shiftListTab' && staffInitData.dayDates.length === 0) loadStaffInitial();
+      if (tabId === 'staffTab' && staffDatesData.dayDates.length === 0) loadStaffDates();
     }
 
     function logout() {
@@ -466,24 +617,187 @@
       clearTimeout(toastTimeout);
       var toast = document.getElementById("toast");
       toast.textContent = text;
-      toast.style.backgroundColor = isError ? "#c82333" : "#28a745";
+      toast.style.backgroundColor = isError ? "#c82333" : "#107c41";
       toast.className = "show";
       toastTimeout = setTimeout(() => toast.className = "", 3500);
     }
 
-    function switchTab(tabId, el) {
-      document.querySelectorAll(".tab-content").forEach(tc => tc.classList.remove("active"));
-      document.querySelectorAll(".nav-tab").forEach(nt => nt.classList.remove("active"));
-      document.getElementById(tabId).classList.add("active");
-      if (el) el.classList.add("active");
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-      if (tabId === "regTab" && (!staffInitData || !staffInitData.dayDates.length)) loadStaffInitial();
-      if (tabId === "shiftListTab" && (!staffInitData || !staffInitData.dayDates.length)) loadStaffInitial();
-      if (tabId === "staffTab" && (!staffDatesData || !staffDatesData.dayDates.length)) loadStaffDates();
+    // ==========================================
+    // 1. HR: ЧЕК-ЛИСТ (АДМИНАМ)
+    // ==========================================
+    var checklistRows = [];
+    var currentCheckShift = 'ночь';
+    var selectedChecklistRow = null;
+
+    async function loadChecklistData() {
+      try {
+        const res = await callApi('getChecklistData');
+        if (res) {
+          checklistRows = res.rows || [];
+          document.getElementById('checkAdminDatesText').innerHTML = 
+            `<div>${res.datesInfo.nightText}</div><div>${res.datesInfo.dayText}</div>`;
+          renderChecklistTable();
+        }
+      } catch (e) { showToast('Ошибка чек-листа: ' + e.message, true); }
+    }
+
+    function setChecklistShiftFilter(shift) {
+      currentCheckShift = shift;
+      document.getElementById('btnCheckShiftNight').classList.toggle('active', shift === 'ночь');
+      document.getElementById('btnCheckShiftDay').classList.toggle('active', shift === 'день');
+      renderChecklistTable();
+    }
+
+    function renderChecklistTable() {
+      var tbody = document.getElementById('checkAdminTbody');
+      var filtered = checklistRows.filter(r => r.shift.includes(currentCheckShift));
+      tbody.innerHTML = '';
+      if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:18px;">Нет записей для выбранной смены</td></tr>';
+        return;
+      }
+      filtered.forEach(r => {
+        var tr = document.createElement('tr');
+        var isDay = r.shift.includes('день');
+        tr.innerHTML = `
+          <td><b>${escapeHtml(r.vacancy)}</b></td>
+          <td><span class="badge ${isDay ? 'badge-shift-day' : 'badge-shift-night'}">${escapeHtml(r.shift.toUpperCase())}</span></td>
+          <td><b>${escapeHtml(r.qty)}</b></td>
+          <td>${escapeHtml(r.standardPay)}</td>
+          <td>${escapeHtml(r.schedule)}</td>
+          <td>${escapeHtml(r.highPay)}</td>
+          <td><button type="button" class="btn btn-blue" style="padding:5px 10px; font-size:12px;" onclick="openEditChecklistModal(${r.rowIndex})">Изменить</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openEditChecklistModal(rowIndex) {
+      selectedChecklistRow = checklistRows.find(r => r.rowIndex === rowIndex);
+      if (!selectedChecklistRow) return;
+      document.getElementById('modalChecklistTitle').textContent = `Редактирование: ${selectedChecklistRow.vacancy}`;
+      document.getElementById('inputCheckQty').value = selectedChecklistRow.qty;
+      document.getElementById('inputCheckStandardPay').value = selectedChecklistRow.standardPay;
+      document.getElementById('inputCheckSchedule').value = selectedChecklistRow.schedule;
+      document.getElementById('inputCheckHighPay').value = selectedChecklistRow.highPay;
+      openModal('editChecklistModal');
+    }
+
+    function openChecklistConfirm() {
+      var nQ = document.getElementById('inputCheckQty').value;
+      var nStd = document.getElementById('inputCheckStandardPay').value;
+      var nSch = document.getElementById('inputCheckSchedule').value;
+      var nHigh = document.getElementById('inputCheckHighPay').value;
+
+      document.getElementById('checklistCompareBox').innerHTML = `
+        <div class="compare-item"><span>Кол-во:</span> <span><span class="old-val">${selectedChecklistRow.qty||'—'}</span> ➔ <span class="new-val">${nQ||'—'}</span></span></div>
+        <div class="compare-item"><span>Стандарт:</span> <span><span class="old-val">${selectedChecklistRow.standardPay||'—'}</span> ➔ <span class="new-val">${nStd||'—'}</span></span></div>
+        <div class="compare-item"><span>График:</span> <span><span class="old-val">${selectedChecklistRow.schedule||'—'}</span> ➔ <span class="new-val">${nSch||'—'}</span></span></div>
+        <div class="compare-item"><span>Повышенная:</span> <span><span class="old-val">${selectedChecklistRow.highPay||'—'}</span> ➔ <span class="new-val">${nHigh||'—'}</span></span></div>
+      `;
+      closeModal('editChecklistModal');
+      openModal('confirmChecklistModal');
+    }
+
+    async function saveChecklistFinal() {
+      var btn = document.getElementById('btnSaveChecklistFinal');
+      btn.disabled = true; btn.textContent = 'Сохранение...';
+      try {
+        const res = await callApi('updateChecklistRow', {
+          rowIndex: selectedChecklistRow.rowIndex,
+          qty: document.getElementById('inputCheckQty').value,
+          standardPay: document.getElementById('inputCheckStandardPay').value,
+          schedule: document.getElementById('inputCheckSchedule').value,
+          highPay: document.getElementById('inputCheckHighPay').value
+        });
+        btn.disabled = false; btn.textContent = '✓ Внести изменения';
+        closeModal('confirmChecklistModal');
+        showToast('✓ Чек-лист успешно обновлен!');
+        loadChecklistData();
+      } catch (e) {
+        btn.disabled = false; btn.textContent = '✓ Внести изменения';
+        showToast('Ошибка сохранения: ' + e.message, true);
+      }
     }
 
     // ==========================================
-    // ЛОГИКА ВКЛАДКИ: ЗАПИСЬ НА СМЕНУ
+    // 2. HR: ПРИВЕДИ ДРУГА
+    // ==========================================
+    var referralRows = [];
+    var selectedReferralRow = null;
+
+    async function loadReferralsData() {
+      try {
+        const res = await callApi('getReferralData');
+        referralRows = res || [];
+        renderReferralsTable();
+      } catch (e) { showToast('Ошибка рефералов: ' + e.message, true); }
+    }
+
+    function renderReferralsTable() {
+      var tbody = document.getElementById('referralTbody');
+      tbody.innerHTML = '';
+      if (!referralRows.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:18px;">Нет сотрудников, ожидающих выплаты 🎉</td></tr>';
+        return;
+      }
+      referralRows.forEach(r => {
+        var tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><b>${escapeHtml(r.referrer)}</b></td>
+          <td>${escapeHtml(r.friend)}</td>
+          <td>${escapeHtml(r.shifts)}</td>
+          <td>${escapeHtml(r.bonus1)}</td>
+          <td>${escapeHtml(r.bonus2)}</td>
+          <td><span class="badge badge-payout">${escapeHtml(r.status)}</span></td>
+          <td><button type="button" class="btn btn-primary" style="padding:5px 10px; font-size:12px;" onclick='openReferralModal(${JSON.stringify(r)})'>Выплачено</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openReferralModal(row) {
+      selectedReferralRow = row;
+      document.getElementById('referralTargetText').innerHTML = `
+        Сотрудник: <b>${escapeHtml(row.referrer)}</b> (за друга: <i>${escapeHtml(row.friend)}</i>)<br>
+        К выплате: Премия 1 = <b>${escapeHtml(row.bonus1)}</b>, Премия 2 = <b>${escapeHtml(row.bonus2)}</b>
+      `;
+      document.getElementById('inputReferralManager').value = '';
+      toggleReferralBtn();
+      openModal('referralPayoutModal');
+    }
+
+    function toggleReferralBtn() {
+      var name = document.getElementById('inputReferralManager').value.trim();
+      document.getElementById('btnSaveReferralFinal').disabled = name.length < 3;
+    }
+
+    async function saveReferralFinal() {
+      var btn = document.getElementById('btnSaveReferralFinal');
+      btn.disabled = true; btn.textContent = 'Сохранение...';
+      try {
+        const res = await callApi('confirmReferralPayout', {
+          rowIndex: selectedReferralRow.rowIndex,
+          friend: selectedReferralRow.friend,
+          bonus1: selectedReferralRow.bonus1,
+          bonus2: selectedReferralRow.bonus2,
+          managerName: document.getElementById('inputReferralManager').value.trim()
+        });
+        btn.disabled = false; btn.textContent = '✓ Зафиксировать выплату';
+        closeModal('referralPayoutModal');
+        showToast('✓ Выплата зафиксирована в таблице!');
+        loadReferralsData();
+      } catch (e) {
+        btn.disabled = false; btn.textContent = '✓ Зафиксировать выплату';
+        showToast('Ошибка: ' + e.message, true);
+      }
+    }
+
+    // ==========================================
+    // 3. HR: ЗАПИСЬ НА СМЕНУ
     // ==========================================
     var staffInitData = { dayDates: [], nightDates: [], vacanciesByShift: { 'день': [], 'ночь': [] } };
 
@@ -495,7 +809,7 @@
           populateRegSelectors();
           populateListSelectors();
         }
-      } catch (e) { showToast('Ошибка связи со справочниками смен: ' + e.message, true); }
+      } catch (e) { showToast('Ошибка связи: ' + e.message, true); }
     }
 
     function populateRegSelectors() {
@@ -512,8 +826,7 @@
       var shift = document.getElementById("regShift").value;
       var vacSel = document.getElementById("regVacancy");
       vacSel.innerHTML = "";
-      var vacs = staffInitData.vacanciesByShift[shift] || [];
-      vacs.forEach(v => {
+      (staffInitData.vacanciesByShift[shift] || []).forEach(v => {
         var opt = document.createElement("option"); opt.value = v.name; opt.textContent = v.name; vacSel.appendChild(opt);
       });
       onRegVacancyChanged();
@@ -523,8 +836,7 @@
     function onRegVacancyChanged() {
       var shift = document.getElementById("regShift").value;
       var vac = document.getElementById("regVacancy").value;
-      var vacs = staffInitData.vacanciesByShift[shift] || [];
-      var found = vacs.find(v => v.name === vac);
+      var found = (staffInitData.vacanciesByShift[shift] || []).find(v => v.name === vac);
       if (found) {
         document.getElementById("regRate").value = found.rate || "";
         var timePart = (found.schedule || "").split("–")[0].trim();
@@ -547,7 +859,7 @@
             if (res.phone && !document.getElementById("regPhone").value) document.getElementById("regPhone").value = res.phone;
           } else if (res.status === 'fuzzy') {
             alertBox.className = "status-alert alert-warning";
-            alertBox.textContent = `⚠️ Найдено совпадение: ${res.matchedName}. Заполняем?`;
+            alertBox.textContent = `⚠️ Найдено соответствие: ${res.matchedName}`;
             if (res.phone && !document.getElementById("regPhone").value) document.getElementById("regPhone").value = res.phone;
             document.getElementById("regFio").value = res.matchedName;
           } else {
@@ -611,12 +923,10 @@
           document.getElementById("regPhone").value = "";
           document.getElementById("fioAlert").style.display = "none";
           document.getElementById("candidateWarnings").style.display = "none";
-        } else {
-          showToast("Ошибка: " + (res ? res.error : "неизвестно"), true);
-        }
+        } else showToast("Ошибка: " + res.error, true);
       } catch (e) {
         document.getElementById("btnRegSubmit").disabled = false;
-        showToast("Ошибка связи: " + e.message, true);
+        showToast("Ошибка: " + e.message, true);
       }
     }
 
@@ -636,7 +946,7 @@
     }
 
     // ==========================================
-    // ЛОГИКА ВКЛАДКИ: СПИСОК СМЕНЫ
+    // 4. HR: СПИСОК СМЕНЫ
     // ==========================================
     var currentShiftListRows = [];
     var moveRowData = null;
@@ -656,9 +966,7 @@
       loadShiftList();
     }
 
-    function onListShiftChanged() {
-      populateListSelectors();
-    }
+    function onListShiftChanged() { populateListSelectors(); }
 
     async function loadShiftList() {
       var shift = document.getElementById("listShift").value;
@@ -714,15 +1022,13 @@
     }
 
     async function deleteFromShift(rowNumber, fio, date) {
-      if (!confirm(`Удалить сотрудника ${fio} со смены?`)) return;
+      if (!confirm(`Удалить ${fio} со смены?`)) return;
       showToast("Удаление со смены...");
       try {
         const res = await callApi('deleteEmployeeFromShift', { rowNumber, expectedFio: fio, expectedDate: date });
-        if (res && res.success) {
-          showToast("✓ " + res.message);
-          loadShiftList();
-        } else showToast("Ошибка: " + (res ? res.error : "неизвестно"), true);
-      } catch (e) { showToast("Ошибка связи: " + e.message, true); }
+        if (res && res.success) { showToast("✓ " + res.message); loadShiftList(); }
+        else showToast("Ошибка: " + res.error, true);
+      } catch (e) { showToast("Ошибка: " + e.message, true); }
     }
 
     function openMoveModal(rowNumber) {
@@ -733,35 +1039,31 @@
       document.getElementById("moveModalCurrentVac").textContent = found.vacancy;
       var sel = document.getElementById("moveModalSelect");
       sel.innerHTML = "";
-      var vacs = staffInitData.vacanciesByShift[found.shift.toLowerCase()] || [];
-      vacs.forEach(v => {
+      (staffInitData.vacanciesByShift[found.shift.toLowerCase()] || []).forEach(v => {
         var opt = document.createElement("option"); opt.value = v.name; opt.textContent = v.name; sel.appendChild(opt);
       });
-      document.getElementById("moveModalOverlay").style.display = "flex";
+      openModal('moveModalOverlay');
     }
 
     async function closeMoveModal(confirmed) {
-      document.getElementById("moveModalOverlay").style.display = "none";
+      closeModal('moveModalOverlay');
       if (!confirmed || !moveRowData) return;
-      var newVac = document.getElementById("moveModalSelect").value;
       showToast("Перевод сотрудника...");
       try {
         const res = await callApi('moveEmployeeVacancy', {
           rowNumber: moveRowData.rowNumber,
           expectedFio: moveRowData.fio,
           expectedDate: moveRowData.date,
-          newVacancy: newVac,
+          newVacancy: document.getElementById("moveModalSelect").value,
           newShift: moveRowData.shift
         });
-        if (res && res.success) {
-          showToast("✓ " + res.message);
-          loadShiftList();
-        } else showToast("Ошибка: " + (res ? res.error : "неизвестно"), true);
-      } catch (e) { showToast("Ошибка связи: " + e.message, true); }
+        if (res && res.success) { showToast("✓ " + res.message); loadShiftList(); }
+        else showToast("Ошибка: " + res.error, true);
+      } catch (e) { showToast("Ошибка: " + e.message, true); }
     }
 
     // ==========================================
-    // ЛОГИКА ВКЛАДКИ: СМЕНЫ И СТАТУСЫ
+    // 5. HR: СМЕНЫ И СТАТУСЫ
     // ==========================================
     var staffDatesData = { dayDates: [], nightDates: [] };
     var currentEmployees = [];
@@ -805,7 +1107,7 @@
       var tbody = document.getElementById('staffTableBody');
       document.getElementById('badgeCount').textContent = `${rows.length} чел.`;
       tbody.innerHTML = '';
-      if (rows.length === 0) {
+      if (!rows.length) {
         tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:18px;">Сотрудники не найдены</td></tr>';
         return;
       }
@@ -843,7 +1145,7 @@
       document.getElementById('mVac').textContent = found.vacancy;
       document.getElementById('mCurrentStatus').textContent = found.status;
       document.getElementById('mStatusSelect').value = 'НЕВЫХОД';
-      document.getElementById('modalOverlay').style.display = 'flex';
+      openModal('modalOverlay');
     }
 
     function onStatusSelectChange() {
@@ -852,8 +1154,8 @@
       document.getElementById('subGroupCsDate').style.display = (v === 'ЧС_ДАТА') ? 'block' : 'none';
     }
 
-    async function closeModal(confirmed) {
-      document.getElementById('modalOverlay').style.display = 'none';
+    async function closeModalStatus(confirmed) {
+      closeModal('modalOverlay');
       if (!confirmed || !editRowData) return;
       var val = document.getElementById('mStatusSelect').value;
       var status = val;
@@ -864,7 +1166,7 @@
       try {
         const res = await callApi('saveNewStatus', { rowNumber: editRowData.rowNumber, expectedFio: editRowData.fio, expectedDate: editRowData.date, newStatus: status });
         if (res && res.success) { showToast("✓ " + res.message); loadEmployees(); }
-        else showToast("Ошибка: " + (res ? res.error : "неизвестно"), true);
+        else showToast("Ошибка: " + res.error, true);
       } catch (e) { showToast("Ошибка связи: " + e.message, true); }
     }
 
@@ -906,7 +1208,7 @@
     }
 
     // ==========================================
-    // ЛОГИКА 1: КИЗЫ, КАМЕРЫ, КАЛЬКУЛЯТОР
+    // 6. СКЛАД МП: КИЗЫ, КАМЕРЫ, КАЛЬКУЛЯТОР
     // ==========================================
     var ALL_CONSTRUCTORS_DATA = [];
     function setSingleKizTable(num, btn) {
@@ -914,14 +1216,11 @@
       document.querySelectorAll("#kizTableButtons .btn-toggle").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
     }
-    function resetKizTableSelection() {
-      document.getElementById("selectedKizTable").value = "";
-      document.querySelectorAll("#kizTableButtons .btn-toggle").forEach(b => b.classList.remove("active"));
-    }
     function forceClearKizField() {
       document.getElementById("kizCodes").value = "";
       document.getElementById("kizLink").value = "";
-      resetKizTableSelection();
+      document.getElementById("selectedKizTable").value = "";
+      document.querySelectorAll("#kizTableButtons .btn-toggle").forEach(b => b.classList.remove("active"));
     }
     function updateConstructorsDropdown(list) {
       var s = document.getElementById("kizConstructor");
