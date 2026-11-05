@@ -35,6 +35,19 @@
     .user-bar { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 8px 14px; font-size: 12.5px; border-bottom: 1px solid var(--border); }
     .btn-logout { background: none; border: 1px solid var(--border); border-radius: 5px; padding: 4px 8px; font-size: 11px; cursor: pointer; color: #5f6368; font-weight: 600; }
 
+    /* Баннер установки PWA */
+    .pwa-install-banner {
+      display: none; background: linear-gradient(135deg, #1a73e8, #1557b0);
+      color: #fff; padding: 10px 14px; justify-content: space-between; align-items: center;
+      font-size: 13px; font-weight: 600;
+    }
+    .pwa-install-btn {
+      background: #fff; color: #1a73e8; border: none; padding: 6px 14px;
+      border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 13px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+    .pwa-install-btn:hover { background: #f1f3f4; }
+
     /* УРОВЕНЬ 1: Главные модули */
     .module-nav { display: flex; background: #0f172a; padding: 4px; gap: 4px; }
     .module-btn { flex: 1; text-align: center; padding: 12px 10px; font-size: 14px; font-weight: 700; cursor: pointer; color: #94a3b8; border: none; background: transparent; border-radius: 8px; transition: 0.2s; }
@@ -119,6 +132,12 @@
     <div class="user-bar">
       <div>Роль: <b id="userRoleBadge" style="color:var(--primary);">—</b></div>
       <button type="button" class="btn-logout" onclick="logout()">Сменить роль ➔</button>
+    </div>
+
+    <!-- Баннер установки PWA -->
+    <div id="pwaBanner" class="pwa-install-banner">
+      <span>📲 Установите приложение на экран</span>
+      <button id="pwaInstallBtn" class="pwa-install-btn" type="button">Установить</button>
     </div>
 
     <!-- УРОВЕНЬ 1: ГЛАВНЫЕ МОДУЛИ -->
@@ -616,6 +635,45 @@
       }
     }
 
+    // PWA Install Prompt
+    let deferredPrompt = null;
+    const pwaBanner = document.getElementById('pwaBanner');
+    const pwaInstallBtn = document.getElementById('pwaInstallBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (pwaBanner) pwaBanner.style.display = 'flex';
+    });
+
+    if (pwaInstallBtn) {
+      pwaInstallBtn.addEventListener('click', async () => {
+        if (!deferredPrompt) {
+          showToast('Используйте меню браузера для установки');
+          return;
+        }
+        deferredPrompt.prompt();
+        const choiceResult = await deferredPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+          pwaBanner.style.display = 'none';
+        }
+        deferredPrompt = null;
+      });
+    }
+
+    window.addEventListener('appinstalled', () => {
+      if (pwaBanner) pwaBanner.style.display = 'none';
+      showToast('✓ Приложение успешно установлено!');
+    });
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sklad-mp/sw.js', { scope: '/sklad-mp/' })
+          .then(() => console.log('SW зарегистрирован'))
+          .catch((err) => console.log('Ошибка SW:', err));
+      });
+    }
+
     async function callApi(action, data = null) {
       if (data) {
         const res = await fetch(API_URL, {
@@ -815,7 +873,7 @@
     }
 
     // ==========================================
-    // 3. HR: ЗАПИСЬ НА СМЕНУ (С ПРОВЕРКОЙ И ПОДТВЕРЖДЕНИЕМ)
+    // 3. HR: ЗАПИСЬ НА СМЕНУ
     // ==========================================
     var staffInitData = { dayDates: [], nightDates: [], vacanciesByShift: { 'день': [], 'ночь': [] } };
     var pendingVerification = null;
@@ -1218,7 +1276,7 @@
         renderStaffTable(currentEmployees);
         updateStaffSummary(currentEmployees, date, shift);
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:color; red; padding:18px;">Ошибка: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:color:red; padding:18px;">Ошибка: ${err.message}</td></tr>`;
       }
     }
 
@@ -1473,4 +1531,4 @@
     };
   </script>
 </body>
-</html> 
+</html>
