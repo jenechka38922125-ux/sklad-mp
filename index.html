@@ -24,7 +24,7 @@
     body { 
       background-color: var(--bg); 
       color: var(--text); 
-      padding: 0; /* Убран отступ, создававший рамку */
+      padding: 0; 
       margin: 0;
       display: flex; 
       flex-direction: column; 
@@ -40,7 +40,6 @@
       overflow: hidden; 
       margin-bottom: 30px; 
       display: none;
-      /* Защита от закругленных углов и "челки" iPhone */
       padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     }
     
@@ -202,7 +201,7 @@
             <button type="button" class="btn-toggle" onclick="setSingleKizTable(5, this)">5</button>
             <button type="button" class="btn-toggle" onclick="setSingleKizTable(6, this)">6</button>
             <button type="button" class="btn-toggle" onclick="setSingleKizTable(7, this)">7</button>
-            <button type="button" class="c-btn-toggle" onclick="setSingleKizTable(8, this)">8</button>
+            <button type="button" class="btn-toggle" onclick="setSingleKizTable(8, this)">8</button>
             <button type="button" class="btn-toggle" onclick="setSingleKizTable(9, this)">9</button>
             <button type="button" class="btn-toggle" onclick="setSingleKizTable(10, this)">10</button>
             <button type="button" class="btn-toggle" onclick="setSingleKizTable(11, this)">11</button>
@@ -238,4 +237,136 @@
         <div class="row-3">
           <div class="form-group"><label>Начало:</label><input type="text" id="camStartTime"></div>
           <div class="form-group"><label>Конец:</label><input type="text" id="camEndTime"></div>
-          <div class="form-group"><label>Длительность:</label><input type="text" id="camDuration" readonly style="background:#f1f3f4;
+          <div class="form-group"><label>Длительность:</label><input type="text" id="camDuration" readonly style="background:#f1f3f4;"></div>
+        </div>
+        <div class="form-group">
+          <label>Столы (мультивыбор):</label>
+          <div class="table-buttons-grid" id="camTablesGrid">
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(1, this)">1</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(2, this)">2</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(3, this)">3</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(4, this)">4</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(5, this)">5</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(6, this)">6</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(7, this)">7</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(8, this)">8</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(9, this)">9</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(10, this)">10</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(11, this)">11</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(12, this)">12</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(13, this)">13</button>
+            <button type="button" class="btn-toggle" onclick="setSingleKizTable(14, this)">14</button>
+          </div>
+        </div>
+        <div class="form-group"><label>Интервал по камере:</label><input type="text" id="camInterval" placeholder="Напр. 10:16-10:37"></div>
+        <div class="form-group"><label>Комментарии:</label><textarea id="camComments" rows="2"></textarea></div>
+        <div style="display:flex; gap:10px;">
+          <button type="button" class="btn btn-secondary" onclick="stopTimer()" style="flex:1;">⏹ Стоп</button>
+          <button type="submit" class="btn btn-primary" style="flex:2;">✓ Сохранить</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 3. КАЛЬКУЛЯТОР -->
+    <div id="calcTab" class="tab-content">
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:14px;">
+        <label>🔍 Найти конструктор в справочнике:</label>
+        <input type="text" id="calcSearchInput" placeholder="Введите название или ШК..." oninput="searchCatalogConstructor(this.value)">
+        <div id="calcSearchResult" style="margin-top:6px;"></div>
+      </div>
+      <form id="calcNewForm" onsubmit="event.preventDefault(); submitNewConstructor();">
+        <div class="form-group"><label>Название конструктора:</label><input type="text" id="newConstrName" required></div>
+        <div class="row-2">
+          <div class="form-group"><label>Штрихкод / Заказчик:</label><input type="text" id="newConstrBarcode" required></div>
+          <div class="form-group"><label>Штук в коробе:</label><input type="number" id="newConstrBoxesInBox" value="20" min="1" required></div>
+        </div>
+        <div class="row-3">
+          <div class="form-group"><label>Размер коробки:</label><select id="newBoxSize" onchange="recalculateComplexity()"><option value="1">1.0</option><option value="1.5" selected>1.5</option><option value="2">2.0</option><option value="2.5">2.5</option><option value="3">3.0</option></select></div>
+          <div class="form-group"><label>Клапаны:</label><select id="newBoxValves" onchange="recalculateComplexity()"><option value="0" selected>Пистолет (+0)</option><option value="0.1">Вручную (+0.1)</option></select></div>
+          <div class="form-group"><label>ВПП:</label><select id="newBoxVpp" onchange="recalculateComplexity()"><option value="0" selected>1 слой (+0)</option><option value="0.2">2 слоя (+0.2)</option><option value="-0.5">Без (-0.5)</option></select></div>
+        </div>
+        <div class="row-2">
+          <div class="form-group"><label>Пакеты (шт):</label><input type="number" id="newPacketsCount" value="2" min="0" oninput="recalculateComplexity()"></div>
+          <div class="form-group"><label>Инструкции (шт):</label><input type="number" id="newManualsCount" value="1" min="0" oninput="recalculateComplexity()"></div>
+        </div>
+        <div style="background:#ebf8ff; border:1px solid #90cdf4; border-radius:8px; padding:12px; text-align:center; margin-bottom:12px;">
+          <div style="font-size:12px; font-weight:700; color:#718096;">ИТОГОВЫЙ КОЭФФИЦИЕНТ:</div>
+          <div id="resTotalCoef" style="font-size:26px; font-weight:800; color:#1a73e8;">1.9</div>
+        </div>
+        <button type="submit" class="btn btn-primary" id="btnSaveConstructor" style="width:100%;">✓ Добавить конструктор в справочник</button>
+      </form>
+    </div>
+
+    <!-- ==================== ЭКРАНЫ HR / ПОДБОР ==================== -->
+    <!-- 4. ЧЕК-ЛИСТ (АДМИНАМ) -->
+    <div id="checkAdminTab" class="tab-content">
+      <div style="background:#fff; border-left:6px solid var(--success); padding:12px 16px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.04); margin-bottom:14px;">
+        <div style="font-size:12px; text-transform:uppercase; font-weight:700; color:var(--text-muted);">Актуальные даты смен:</div>
+        <div id="checkAdminDatesText" style="font-size:15px; font-weight:700; margin-top:4px;">Загрузка дат...</div>
+      </div>
+      <div class="filter-panel" style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-toggle active" id="btnCheckShiftNight" onclick="setChecklistShiftFilter('ночь')">🌙 Только Ночь</button>
+          <button type="button" class="btn-toggle" id="btnCheckShiftDay" onclick="setChecklistShiftFilter('день')">☀️ Только День</button>
+        </div>
+        <button type="button" class="btn-small-refresh" onclick="loadChecklistData()">🔄 Обновить</button>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Вакансия</th><th>Смена</th><th>Кол-во (D)</th><th>Оплата (I)</th><th>График (J)</th><th>Повышенная (K)</th><th>Действие</th>
+            </tr>
+          </thead>
+          <tbody id="checkAdminTbody"><tr><td colspan="7" style="text-align:center; padding:18px;">Загрузка данных...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 5. ПРИВЕДИ ДРУГА -->
+    <div id="referralTab" class="tab-content">
+      <div style="background:#fff; border-left:6px solid #0284c7; padding:12px 16px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.04); margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-size:12px; text-transform:uppercase; font-weight:700; color:var(--text-muted);">Выплаты по акции «Приведи друга»</div>
+          <div style="font-size:14px; font-weight:700; margin-top:2px;">Сотрудники со статусом «К выплате»</div>
+        </div>
+        <button type="button" class="btn-small-refresh" onclick="loadReferralsData()">🔄 Обновить</button>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Кто привёл</th><th>Кого привёл</th><th>Смен</th><th>Премия 1</th><th>Премия 2</th><th>Статус</th><th>Действие</th>
+            </tr>
+          </thead>
+          <tbody id="referralTbody"><tr><td colspan="7" style="text-align:center; padding:18px;">Загрузка рефералов...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 6. ЗАПИСЬ НА СМЕНУ -->
+    <div id="regTab" class="tab-content">
+      <form id="regForm" onsubmit="event.preventDefault(); submitRegistration();">
+        <div class="row-2">
+          <div class="form-group">
+            <label>Смена:</label>
+            <select id="regShift" onchange="onRegShiftChanged()" required>
+              <option value="день">☀️ День</option>
+              <option value="ночь">🌙 Ночь</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Дата смены:</label>
+            <select id="regDate" onchange="onRegDateChanged()" required></select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Вакансия:</label>
+          <select id="regVacancy" onchange="onRegVacancyChanged()" required></select>
+        </div>
+
+        <!-- Поле ввода ФИО с кнопкой Проверить -->
+        <div class="form-group">
+          <label>ФИО сотрудника:</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="regFio" placeholder="Фамилия Имя Отчество" onblur="verifyFioOnBlur()" oninput="resetCandidateVerification()"
