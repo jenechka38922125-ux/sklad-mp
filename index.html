@@ -4,185 +4,127 @@
   <meta charset="utf-8">
   <title>Склад МП</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  
-  <!-- PWA настройки -->
   <link rel="manifest" href="/sklad-mp/manifest.json">
   <meta name="theme-color" content="#1a73e8">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Склад МП">
   <link rel="apple-touch-icon" href="/sklad-mp/icon.png">
 
   <style>
     :root {
-      --primary: #1a73e8;
-      --primary-hover: #1557b0;
-      --success: #28a745;
-      --success-hover: #218838;
-      --danger: #dc3545;
-      --danger-hover: #c82333;
-      --warning: #f2994a;
-      --bg: #f4f6f9;
-      --card-bg: #ffffff;
-      --text: #202124;
-      --text-muted: #5f6368;
-      --border: #dadce0;
-      --selected-bg: #e8f0fe;
+      --primary: #1a73e8; --primary-hover: #1557b0;
+      --success: #28a745; --success-hover: #218838;
+      --danger: #dc3545; --danger-hover: #c82333;
+      --warning: #f2994a; --bg: #f4f6f9; --card-bg: #ffffff;
+      --text: #202124; --text-muted: #5f6368; --border: #dadce0; --selected-bg: #e8f0fe;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding: 12px; display: flex; justify-content: center; }
-    .container { width: 100%; max-width: 820px; background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 30px; }
+    body { background-color: var(--bg); color: var(--text); padding: 10px; display: flex; justify-content: center; }
+    .container { width: 100%; max-width: 860px; background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 30px; display: none; }
     
-    /* Баннер установки PWA */
-    .pwa-install-banner {
-      display: none;
-      background: linear-gradient(135deg, #1a73e8, #1557b0);
-      color: #fff;
-      padding: 10px 14px;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      font-weight: 600;
-    }
-    .pwa-install-btn {
-      background: #fff;
-      color: #1a73e8;
-      border: none;
-      padding: 6px 14px;
-      border-radius: 6px;
-      font-weight: 700;
-      cursor: pointer;
-      font-size: 13px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-    }
-    .pwa-install-btn:hover { background: #f1f3f4; }
+    /* Авторизация */
+    #authOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 5000; padding: 20px; }
+    .auth-card { background: #fff; width: 100%; max-width: 360px; border-radius: 14px; padding: 26px 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; }
+    .auth-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+    .auth-subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; }
+    .pin-input { font-size: 26px; letter-spacing: 12px; text-align: center; font-weight: 800; width: 180px; padding: 8px 12px; border: 2px solid var(--border); border-radius: 8px; outline: none; margin: 0 auto 16px; display: block; }
+    .pin-input:focus { border-color: var(--primary); }
 
-    /* Верхние вкладки */
+    .user-bar { display: flex; justify-content: space-between; align-items: center; background: #f1f3f4; padding: 8px 14px; font-size: 12.5px; border-bottom: 1px solid var(--border); }
+    .btn-logout { background: none; border: 1px solid #dadce0; border-radius: 5px; padding: 4px 8px; font-size: 11px; cursor: pointer; color: #5f6368; font-weight: 600; }
+
+    /* Вкладки */
     .nav-tabs { display: flex; background: #e8eaed; border-bottom: 2px solid var(--border); overflow-x: auto; }
-    .nav-tab { flex: 1; min-width: 120px; text-align: center; padding: 13px 6px; font-size: 13.5px; font-weight: 600; cursor: pointer; color: var(--text-muted); border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap; }
+    .nav-tab { flex: 1; min-width: 120px; text-align: center; padding: 13px 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-muted); border-bottom: 3px solid transparent; white-space: nowrap; }
     .nav-tab.active { background: var(--card-bg); color: var(--primary); border-bottom-color: var(--primary); }
     .tab-content { display: none; padding: 18px; }
     .tab-content.active { display: block; }
+
     .form-group { margin-bottom: 14px; }
     label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #3c4043; }
     input[type="text"], input[type="number"], input[type="date"], input[type="time"], select, textarea {
       width: 100%; padding: 10px 12px; font-size: 14px; border: 1px solid var(--border); border-radius: 6px; outline: none; background-color: #fff;
     }
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--primary); box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
-    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
     .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    
     .table-buttons-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 4px; }
-    .btn-toggle {
-      padding: 9px 0; font-size: 14px; font-weight: 700; border: 1px solid var(--border); background-color: #f8f9fa; color: #333;
-      border-radius: 6px; cursor: pointer; text-align: center; transition: all 0.15s ease; user-select: none;
-    }
-    .btn-toggle:hover { background-color: #e2e6ea; }
-    .btn-toggle.active {
-      background-color: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 2px 6px rgba(26, 115, 232, 0.4); transform: scale(1.02);
-    }
+    .btn-toggle { padding: 9px 0; font-size: 14px; font-weight: 700; border: 1px solid var(--border); background-color: #f8f9fa; color: #333; border-radius: 6px; cursor: pointer; text-align: center; }
+    .btn-toggle.active { background-color: var(--primary); color: #fff; border-color: var(--primary); }
     .btn-group-row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .btn-group-row .btn-toggle { flex: 1; padding: 10px 8px; min-width: 110px; font-size: 13px; }
-    
-    .accumulated-time-banner {
-      background: #e8f0fe; border: 1px solid #aecbfa; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .accumulated-time-label { font-size: 13px; font-weight: 600; color: #1967d2; }
-    .accumulated-time-value { font-size: 17px; font-weight: 700; color: #1a73e8; font-variant-numeric: tabular-nums; }
-    .timer-card { background: #f0f4f9; border: 1px solid #c2e7ff; border-radius: 8px; padding: 12px; margin-bottom: 14px; text-align: center; }
-    .timer-display { font-size: 26px; font-weight: 700; color: #1a73e8; letter-spacing: 1px; margin: 4px 0 8px 0; }
-    .btn-timer { padding: 10px 18px; font-size: 14px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s; width: 100%; }
-    .btn-timer.start { background-color: var(--success); color: white; }
-    .btn-timer.start:hover { background-color: var(--success-hover); }
-    .btn-timer.stop { background-color: var(--danger); color: white; padding: 12px 18px; font-size: 15px; }
-    .btn-timer.stop:hover { background-color: var(--danger-hover); }
-    .hint-box { font-size: 12px; background: #fff8e1; border-left: 4px solid #ffb300; padding: 8px 10px; margin-top: 6px; border-radius: 4px; color: #6d4c41; line-height: 1.4; }
-    .actions-row { display: flex; gap: 10px; margin-top: 10px; }
-    .btn { padding: 12px 16px; font-size: 15px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-    .btn:active { transform: scale(0.98); }
-    .btn-primary { background-color: var(--success); color: white; flex: 3; }
-    .btn-primary:hover { background-color: var(--success-hover); }
-    .btn-secondary { background-color: var(--danger); color: white; flex: 1.2; }
-    .btn-secondary:hover { background-color: var(--danger-hover); }
-    .btn-small-refresh { padding: 4px 10px; font-size: 11px; font-weight: 600; background: #edf2f7; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; transition: 0.15s; }
-    .btn-small-refresh:hover { background: #e2e8f0; }
-    
-    .calc-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
-    .calc-sec-title { font-size: 14px; font-weight: 700; color: #2d3748; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-    .calc-res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
-    .res-box { background: #fff; border: 1px solid #cbd5e0; border-radius: 8px; padding: 10px; text-align: center; }
-    .res-box.main { background: #ebf8ff; border-color: #90cdf4; grid-column: span 2; }
-    .res-lbl { font-size: 11px; font-weight: 700; color: #718096; text-transform: uppercase; margin-bottom: 4px; }
-    .res-val { font-size: 20px; font-weight: 800; color: #2b6cb0; }
-    .search-result-card { background: #ffffff; border: 1px solid #bee3f8; border-radius: 8px; padding: 12px; margin-top: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+    .btn-group-row .btn-toggle { flex: 1; padding: 10px 8px; min-width: 100px; font-size: 13px; }
 
-    /* Стили 4-й вкладки (Сотрудники и смены) */
+    .btn { padding: 11px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn-primary { background-color: var(--success); color: white; }
+    .btn-primary:hover { background-color: var(--success-hover); }
+    .btn-blue { background-color: var(--primary); color: white; }
+    .btn-blue:hover { background-color: var(--primary-hover); }
+    .btn-secondary { background-color: var(--danger); color: white; }
+
     .filter-panel { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 16px; }
-    .search-wrapper { position: relative; display: flex; align-items: center; }
-    .search-icon { position: absolute; left: 12px; font-size: 15px; color: var(--primary); pointer-events: none; }
-    .search-input { padding-left: 36px !important; padding-right: 36px !important; }
-    .btn-clear-search { position: absolute; right: 10px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 4px; display: none; }
-    .badge-count { display: inline-block; padding: 5px 12px; background: var(--selected-bg); color: var(--primary); border-radius: 12px; font-size: 13px; font-weight: 700; }
     .table-container { overflow-x: auto; margin-top: 10px; border-radius: 8px; border: 1px solid var(--border); max-height: 420px; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th, td { padding: 9px 10px; border-bottom: 1px solid var(--border); text-align: left; }
     th { background: #f1f3f4; color: #3c4043; font-weight: 600; position: sticky; top: 0; z-index: 2; }
     tr:hover { background: #f8f9fa; }
-    .btn-edit-status { padding: 5px 10px; font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer; border: 1px solid #d2e3fc; background: var(--selected-bg); color: var(--primary); }
-    .btn-edit-status:hover { background: var(--primary); color: white; }
-    .summary-card { margin-top: 18px; background: #fafbfc; border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
-    .btn-copy { background: #e6f4ea; border: 1px solid #ceead6; color: var(--success); padding: 8px 12px; font-size: 13px; border-radius: 6px; cursor: pointer; font-weight: 600; }
-    .btn-copy:hover { background: #ceead6; }
+    .badge-count { display: inline-block; padding: 5px 12px; background: var(--selected-bg); color: var(--primary); border-radius: 12px; font-size: 13px; font-weight: 700; }
+    
+    .status-alert { padding: 10px 14px; border-radius: 8px; margin-top: 8px; font-size: 13px; font-weight: 600; display: none; }
+    .alert-danger { background: #fce8e6; color: #c5221f; border: 1px solid #fad2cf; }
+    .alert-warning { background: #fef7e0; color: #b06000; border: 1px solid #feefc3; }
+    .alert-success { background: #e6f4ea; color: #137333; border: 1px solid #ceead6; }
 
-    /* Модальное окно */
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
-    .modal { background: white; padding: 20px; border-radius: 12px; max-width: 440px; width: 90%; box-shadow: 0 4px 18px rgba(0,0,0,0.2); }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 6000; align-items: center; justify-content: center; }
+    .modal { background: white; padding: 20px; border-radius: 12px; max-width: 440px; width: 90%; }
     .modal-header { font-weight: bold; font-size: 16px; margin-bottom: 12px; }
     .modal-body { font-size: 13.5px; line-height: 1.5; color: #333; margin-bottom: 16px; }
     .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
-    #toast {
-      visibility: hidden; min-width: 280px; max-width: 90%; background-color: #323232; color: #fff; text-align: center; border-radius: 8px;
-      padding: 12px 18px; position: fixed; z-index: 2000; bottom: 24px; left: 50%; transform: translateX(-50%); font-size: 14px;
-    }
+    #toast { visibility: hidden; min-width: 280px; max-width: 90%; background-color: #323232; color: #fff; text-align: center; border-radius: 8px; padding: 12px 18px; position: fixed; z-index: 7000; bottom: 24px; left: 50%; transform: translateX(-50%); font-size: 14px; }
     #toast.show { visibility: visible; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div id="pwaBanner" class="pwa-install-banner">
-      <span>📲 Установите приложение на устройство</span>
-      <button id="pwaInstallBtn" class="pwa-install-btn" type="button">Установить</button>
+
+  <!-- Авторизация -->
+  <div id="authOverlay">
+    <div class="auth-card">
+      <div style="font-size: 38px; margin-bottom: 6px;">🔐</div>
+      <div class="auth-title">Склад МП</div>
+      <div class="auth-subtitle">Введите персональный PIN-код</div>
+      <form onsubmit="event.preventDefault(); verifyPin();">
+        <input type="password" id="pinInput" class="pin-input" maxlength="4" pattern="[0-9]*" inputmode="numeric" placeholder="••••" autofocus required>
+        <button type="submit" class="btn btn-blue" style="width: 100%;">Войти</button>
+      </form>
+      <div id="authError" style="color: var(--danger); font-size: 13px; margin-top: 10px; font-weight: 600; display: none;">Неверный PIN-код!</div>
+    </div>
+  </div>
+
+  <div class="container" id="mainContainer">
+    <div class="user-bar">
+      <div>Роль: <b id="userRoleBadge" style="color:var(--primary);">—</b></div>
+      <button type="button" class="btn-logout" onclick="logout()">Сменить роль ➔</button>
     </div>
 
-    <!-- Верхнее меню: 4 вкладки -->
+    <!-- Навигация (6 вкладок) -->
     <div class="nav-tabs">
-      <div class="nav-tab active" onclick="switchTab('kizTab', this)">📦 КИЗы</div>
-      <div class="nav-tab" onclick="switchTab('cameraTab', this)">🎥 Камеры</div>
-      <div class="nav-tab" onclick="switchTab('calcTab', this)">⚙️ Калькулятор</div>
-      <div class="nav-tab" onclick="switchTab('staffTab', this)">👥 Смены и статусы</div>
+      <div class="nav-tab active" id="tabBtnKiz" onclick="switchTab('kizTab', this)">📦 КИЗы</div>
+      <div class="nav-tab" id="tabBtnCamera" onclick="switchTab('cameraTab', this)">🎥 Камеры</div>
+      <div class="nav-tab" id="tabBtnCalc" onclick="switchTab('calcTab', this)">⚙️ Калькулятор</div>
+      <div class="nav-tab" id="tabBtnReg" onclick="switchTab('regTab', this)">📝 Запись на смену</div>
+      <div class="nav-tab" id="tabBtnShiftList" onclick="switchTab('shiftListTab', this)">📋 Список смены</div>
+      <div class="nav-tab" id="tabBtnStaff" onclick="switchTab('staffTab', this)">👥 Смены и статусы</div>
     </div>
 
-    <!-- 1. ВКЛАДКА КИЗОВ -->
+    <!-- 1. КИЗЫ -->
     <div id="kizTab" class="tab-content active">
       <form id="kizForm" onsubmit="event.preventDefault(); submitKiz();">
         <div class="row-2">
-          <div class="form-group">
-            <label>Дата:</label>
-            <input type="date" id="kizDate" required>
-          </div>
-          <div class="form-group">
-            <label>Смена:</label>
-            <select id="kizShift" required>
-              <option value="день">☀️ День</option>
-              <option value="ночь">🌙 Ночь</option>
-            </select>
-          </div>
+          <div class="form-group"><label>Дата:</label><input type="date" id="kizDate" required></div>
+          <div class="form-group"><label>Смена:</label><select id="kizShift" required><option value="день">☀️ День</option><option value="ночь">🌙 Ночь</option></select></div>
         </div>
-
         <div class="form-group">
           <label>Стол:</label>
           <div class="table-buttons-grid" id="kizTableButtons">
@@ -203,75 +145,35 @@
           </div>
           <input type="hidden" id="selectedKizTable" value="">
         </div>
-
-        <div class="form-group">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <label style="margin-bottom:0;">Поиск товара (по названию или цифрам ШК):</label>
-            <button type="button" class="btn-small-refresh" onclick="refreshConstructorsList(true)">🔄 Обновить</button>
-          </div>
-          <input type="text" id="kizSearchFilter" placeholder="Начните вводить название или ШК..." oninput="onKizSearchInput(this.value)">
-        </div>
-
-        <div class="form-group">
-          <label>Выбранный конструктор / товар:</label>
-          <select id="kizConstructor" onchange="onKizSelectChanged(this.value)">
-            <option value="">-- Выберите из списка --</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Ссылка:</label>
-          <input type="text" id="kizLink" placeholder="https://max.ru/...">
-        </div>
-
-        <div class="form-group">
-          <label>КИЗы:</label>
-          <textarea id="kizCodes" rows="6" placeholder="Вставьте или отсканируйте КИЗы..."></textarea>
-        </div>
-
-        <div class="actions-row">
-          <button type="submit" class="btn btn-primary" id="btnSubmitKiz">✓ Добавить запись кизов</button>
-          <button type="button" class="btn btn-secondary" onclick="forceClearKizField()">✕ Очистить</button>
+        <div class="form-group"><label>Поиск товара / ШК:</label><input type="text" id="kizSearchFilter" placeholder="Введите название или ШК..." oninput="onKizSearchInput(this.value)"></div>
+        <div class="form-group"><label>Выбранный конструктор:</label><select id="kizConstructor"><option value="">-- Выберите из списка --</option></select></div>
+        <div class="form-group"><label>Ссылка:</label><input type="text" id="kizLink" placeholder="https://max.ru/..."></div>
+        <div class="form-group"><label>КИЗы:</label><textarea id="kizCodes" rows="5" placeholder="Вставьте КИЗы..."></textarea></div>
+        <div style="display:flex; gap:10px;">
+          <button type="submit" class="btn btn-primary" style="flex:3;">✓ Добавить КИЗы</button>
+          <button type="button" class="btn btn-secondary" style="flex:1;" onclick="forceClearKizField()">✕</button>
         </div>
       </form>
     </div>
 
-    <!-- 2. ВКЛАДКА КАМЕР -->
+    <!-- 2. КАМЕРЫ -->
     <div id="cameraTab" class="tab-content">
       <form id="cameraForm" onsubmit="event.preventDefault(); submitCamera();">
-        <div class="form-group">
-          <label>Дата отсмотра:</label>
-          <input type="date" id="camDate" onchange="onDateChanged()" required>
+        <div class="form-group"><label>Дата отсмотра:</label><input type="date" id="camDate" onchange="onDateChanged()" required></div>
+        <div style="background:#e8f0fe; padding:10px; border-radius:8px; margin-bottom:12px; display:flex; justify-content:space-between; font-weight:700;">
+          <span style="color:#1967d2;">⏱️ Уже отсмотрено за дату:</span><span id="accumulatedTimeValue" style="color:#1a73e8;">00:00:00</span>
         </div>
-
-        <div class="accumulated-time-banner">
-          <span class="accumulated-time-label">⏱️ Уже отсмотрено за выбранную дату:</span>
-          <span class="accumulated-time-value" id="accumulatedTimeValue">00:00:00</span>
+        <div style="background:#f0f4f9; border:1px solid #c2e7ff; padding:12px; border-radius:8px; text-align:center; margin-bottom:12px;">
+          <div id="timerDisplay" style="font-size:26px; font-weight:800; color:#1a73e8; margin-bottom:6px;">00:00:00</div>
+          <button type="button" class="btn btn-primary" id="btnTimer" style="width:100%;" onclick="startTimer()">⏱ Начать отсмотр</button>
         </div>
-
-        <div class="timer-card">
-          <div style="font-size: 13px; color: var(--text-muted);">Автоматический таймер отсмотра:</div>
-          <div class="timer-display" id="timerDisplay">00:00:00</div>
-          <button type="button" class="btn-timer start" id="btnTimer" onclick="startTimer()">⏱ Начать отсмотр</button>
-        </div>
-
         <div class="row-3">
-          <div class="form-group">
-            <label>Начало:</label>
-            <input type="text" id="camStartTime" placeholder="10:15:00">
-          </div>
-          <div class="form-group">
-            <label>Конец:</label>
-            <input type="text" id="camEndTime" placeholder="10:35:00">
-          </div>
-          <div class="form-group">
-            <label>Длительность:</label>
-            <input type="text" id="camDuration" placeholder="00:20:00" readonly style="background:#f1f3f4;">
-          </div>
+          <div class="form-group"><label>Начало:</label><input type="text" id="camStartTime"></div>
+          <div class="form-group"><label>Конец:</label><input type="text" id="camEndTime"></div>
+          <div class="form-group"><label>Длительность:</label><input type="text" id="camDuration" readonly style="background:#f1f3f4;"></div>
         </div>
-
         <div class="form-group">
-          <label>Столы (мультивыбор - нажмите нужные):</label>
+          <label>Столы (мультивыбор):</label>
           <div class="table-buttons-grid" id="camTablesGrid">
             <button type="button" class="btn-toggle" onclick="toggleCamTable(1, this)">1</button>
             <button type="button" class="btn-toggle" onclick="toggleCamTable(2, this)">2</button>
@@ -288,242 +190,162 @@
             <button type="button" class="btn-toggle" onclick="toggleCamTable(13, this)">13</button>
             <button type="button" class="btn-toggle" onclick="toggleCamTable(14, this)">14</button>
           </div>
-          <div style="margin-top: 4px; font-size: 13px; color: #1a73e8; font-weight:600;">
-            Выбрано: <span id="camTablesSelectedLabel">не выбрано</span>
-          </div>
         </div>
-
-        <div id="tableHintBox" class="hint-box" style="display: none;"></div>
-
-        <div class="form-group">
-          <label>Камера:</label>
-          <div class="btn-group-row">
-            <button type="button" class="btn-toggle active" id="btnCamSide" onclick="selectCamera('Боковая', this)">Боковая</button>
-            <button type="button" class="btn-toggle" id="btnCamTop" onclick="selectCamera('Над столами', this)">Над столами</button>
-          </div>
-          <input type="hidden" id="camCamera" value="Боковая">
-        </div>
-
-        <div class="form-group">
-          <label>Что в отсмотре:</label>
-          <div class="btn-group-row">
-            <button type="button" class="btn-toggle active" onclick="selectWhatChecked('в реал времени', this)">в реал времени</button>
-            <button type="button" class="btn-toggle" onclick="selectWhatChecked('инструкции', this)">инструкции</button>
-            <button type="button" class="btn-toggle" onclick="selectWhatChecked('весь цикл', this)">весь цикл</button>
-            <button type="button" class="btn-toggle" onclick="selectWhatChecked('скорость', this)">скорость</button>
-          </div>
-          <input type="hidden" id="camWhatChecked" value="в реал времени">
-        </div>
-
-        <div class="form-group">
-          <label>Результат проверки:</label>
-          <div class="btn-group-row">
-            <button type="button" class="btn-toggle active" onclick="selectResult('нарушений нет', this)">нарушений нет</button>
-            <button type="button" class="btn-toggle" onclick="selectResult('замечание', this)">замечание</button>
-            <button type="button" class="btn-toggle" onclick="selectResult('запрос проверки', this)">запрос проверки</button>
-            <button type="button" class="btn-toggle" onclick="selectResult('брак', this)">брак</button>
-          </div>
-          <input type="hidden" id="camResult" value="нарушений нет">
-        </div>
-
-        <div class="form-group">
-          <label>Интервал по камере:</label>
-          <input type="text" id="camInterval" placeholder="Напр. 10:16-10:37">
-        </div>
-
-        <div class="form-group">
-          <label>Комментарии по ошибкам:</label>
-          <textarea id="camComments" rows="2" placeholder="Укажите замечания, если есть..."></textarea>
-        </div>
-
-        <div style="margin-bottom: 12px;">
-          <button type="button" class="btn-timer stop" id="btnStopTimer" onclick="stopTimer()">⏹ Остановить таймер</button>
-        </div>
-
-        <div class="actions-row">
-          <button type="submit" class="btn btn-primary" style="flex:1;">✓ Сохранить отсмотр</button>
+        <div class="form-group"><label>Интервал по камере:</label><input type="text" id="camInterval" placeholder="Напр. 10:16-10:37"></div>
+        <div class="form-group"><label>Комментарии:</label><textarea id="camComments" rows="2"></textarea></div>
+        <div style="display:flex; gap:10px;">
+          <button type="button" class="btn btn-secondary" onclick="stopTimer()" style="flex:1;">⏹ Стоп</button>
+          <button type="submit" class="btn btn-primary" style="flex:2;">✓ Сохранить</button>
         </div>
       </form>
     </div>
 
-    <!-- 3. ВКЛАДКА КАЛЬКУЛЯТОРА И ПОИСКА КОНСТРУКТОРОВ -->
+    <!-- 3. КАЛЬКУЛЯТОР -->
     <div id="calcTab" class="tab-content">
-      <div class="calc-card">
-        <div class="calc-sec-title">🔍 Найти конструктор в справочнике</div>
-        <input type="text" id="calcSearchInput" placeholder="Введите название или цифры ШК..." oninput="searchCatalogConstructor(this.value)">
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:14px;">
+        <label>🔍 Найти конструктор в справочнике:</label>
+        <input type="text" id="calcSearchInput" placeholder="Введите название или ШК..." oninput="searchCatalogConstructor(this.value)">
         <div id="calcSearchResult" style="margin-top:6px;"></div>
       </div>
-
       <form id="calcNewForm" onsubmit="event.preventDefault(); submitNewConstructor();">
-        <div class="calc-card">
-          <div class="calc-sec-title">📦 1. Параметры коробки</div>
-          <div class="form-group">
-            <label>Название конструктора:</label>
-            <input type="text" id="newConstrName" placeholder="Напр. Конструктор Техник Porsche 911" required>
-          </div>
-          <div class="row-2">
-            <div class="form-group">
-              <label>Штрихкод / Заказчик:</label>
-              <input type="text" id="newConstrBarcode" placeholder="ИП Чернов А.В. OZN..." required>
-            </div>
-            <div class="form-group">
-              <label>Штук в коробе (C):</label>
-              <input type="number" id="newConstrBoxesInBox" value="20" min="1" required>
-            </div>
-          </div>
-          <div class="row-3">
-            <div class="form-group">
-              <label>Размер коробки:</label>
-              <select id="newBoxSize" onchange="recalculateComplexity()">
-                <option value="1">Маленькая (1.0)</option>
-                <option value="1.5" selected>Средняя (1.5)</option>
-                <option value="2">Большая (2.0)</option>
-                <option value="2.5">Очень большая (2.5)</option>
-                <option value="3">Огромная (3.0)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Клапаны:</label>
-              <select id="newBoxValves" onchange="recalculateComplexity()">
-                <option value="0" selected>Пистолет (+0)</option>
-                <option value="0.1">Вручную (+0.1)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Слои ВПП:</label>
-              <select id="newBoxVpp" onchange="recalculateComplexity()">
-                <option value="0" selected>1 слой (+0)</option>
-                <option value="0.2">2 слоя (+0.2)</option>
-                <option value="-0.5">Без ВПП (-0.5)</option>
-              </select>
-            </div>
-          </div>
+        <div class="form-group"><label>Название конструктора:</label><input type="text" id="newConstrName" required></div>
+        <div class="row-2">
+          <div class="form-group"><label>Штрихкод / Заказчик:</label><input type="text" id="newConstrBarcode" required></div>
+          <div class="form-group"><label>Штук в коробе:</label><input type="number" id="newConstrBoxesInBox" value="20" min="1" required></div>
         </div>
-
-        <div class="calc-card">
-          <div class="calc-sec-title">🧩 2. Вложения и фасовка</div>
-          <div class="row-2">
-            <div class="form-group">
-              <label>Пакеты деталей (шт.):</label>
-              <input type="number" id="newPacketsCount" value="2" min="0" oninput="recalculateComplexity()">
-            </div>
-            <div class="form-group">
-              <label>Инструкции (шт.):</label>
-              <input type="number" id="newManualsCount" value="1" min="0" oninput="recalculateComplexity()">
-            </div>
-          </div>
-          <div class="row-2">
-            <div class="form-group">
-              <label>Наклейки (шт.):</label>
-              <input type="number" id="newStickersCount" value="1" min="0" oninput="recalculateComplexity()">
-            </div>
-            <div class="form-group">
-              <label>Доп. вложения (шт.):</label>
-              <input type="number" id="newExtraInclusionsCount" value="0" min="0" oninput="recalculateComplexity()">
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Доп. манипуляции с деталями (вскрытие и др.):</label>
-            <select id="newManipulations" onchange="recalculateComplexity()">
-              <option value="0" selected>Нет (+0)</option>
-              <option value="0.1">Да, простые (+0.1)</option>
-              <option value="0.2">Да, сложные (+0.2)</option>
-            </select>
-          </div>
-
-          <div class="calc-res-grid">
-            <div class="res-box">
-              <div class="res-lbl">Коэф. коробки (D)</div>
-              <div class="res-val" id="resBoxCoef">1.5</div>
-            </div>
-            <div class="res-box">
-              <div class="res-lbl">Всего вложений (E / G)</div>
-              <div class="res-val" id="resInclusionsVal">4 шт. (0.4)</div>
-            </div>
-            <div class="res-box main">
-              <div class="res-lbl">ИТОГОВЫЙ ОБЩИЙ КОЭФФИЦИЕНТ (I)</div>
-              <div class="res-val" id="resTotalCoef" style="font-size: 26px; color: #1a73e8;">1.9</div>
-            </div>
-          </div>
+        <div class="row-3">
+          <div class="form-group"><label>Размер коробки:</label><select id="newBoxSize" onchange="recalculateComplexity()"><option value="1">1.0</option><option value="1.5" selected>1.5</option><option value="2">2.0</option><option value="2.5">2.5</option><option value="3">3.0</option></select></div>
+          <div class="form-group"><label>Клапаны:</label><select id="newBoxValves" onchange="recalculateComplexity()"><option value="0" selected>Пистолет (+0)</option><option value="0.1">Вручную (+0.1)</option></select></div>
+          <div class="form-group"><label>ВПП:</label><select id="newBoxVpp" onchange="recalculateComplexity()"><option value="0" selected>1 слой (+0)</option><option value="0.2">2 слоя (+0.2)</option><option value="-0.5">Без (-0.5)</option></select></div>
         </div>
-
-        <div class="actions-row">
-          <button type="submit" class="btn btn-primary" id="btnSaveConstructor" style="flex:1;">✓ Добавить конструктор в справочник</button>
+        <div class="row-2">
+          <div class="form-group"><label>Пакеты (шт):</label><input type="number" id="newPacketsCount" value="2" min="0" oninput="recalculateComplexity()"></div>
+          <div class="form-group"><label>Инструкции (шт):</label><input type="number" id="newManualsCount" value="1" min="0" oninput="recalculateComplexity()"></div>
         </div>
+        <div style="background:#ebf8ff; border:1px solid #90cdf4; border-radius:8px; padding:12px; text-align:center; margin-bottom:12px;">
+          <div style="font-size:12px; font-weight:700; color:#718096;">ИТОГОВЫЙ КОЭФФИЦИЕНТ:</div>
+          <div id="resTotalCoef" style="font-size:26px; font-weight:800; color:#1a73e8;">1.9</div>
+        </div>
+        <button type="submit" class="btn btn-primary" id="btnSaveConstructor" style="width:100%;">✓ Добавить конструктор в справочник</button>
       </form>
     </div>
 
-    <!-- 4. НОВАЯ ВКЛАДКА: СМЕНЫ И СТАТУСЫ СОТРУДНИКОВ (ИЗ 2-Й ТАБЛИЦЫ) -->
-    <div id="staffTab" class="tab-content">
-      <div class="filter-panel">
+    <!-- 4. ЗАПИСЬ НА СМЕНУ -->
+    <div id="regTab" class="tab-content">
+      <form id="regForm" onsubmit="event.preventDefault(); submitRegistration();">
         <div class="row-2">
-          <div class="form-group" style="margin-bottom:0;">
+          <div class="form-group">
             <label>Смена:</label>
-            <select id="selShift" onchange="onStaffShiftChange()">
+            <select id="regShift" onchange="onRegShiftChanged()" required>
               <option value="день">☀️ День</option>
               <option value="ночь">🌙 Ночь</option>
             </select>
           </div>
-          <div class="form-group" style="margin-bottom:0;">
+          <div class="form-group">
             <label>Дата смены:</label>
-            <select id="selDate" onchange="loadEmployees()"></select>
+            <select id="regDate" onchange="checkCandidateDetails()" required></select>
           </div>
         </div>
-
-        <div class="form-group" style="margin-top:12px; margin-bottom:0;">
-          <label>🔍 Быстрый поиск сотрудника (ФИО или телефон):</label>
-          <div class="search-wrapper">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="staffSearchInput" class="search-input" placeholder="Введите фамилию..." oninput="onStaffSearchChanged()">
-            <button type="button" id="btnClearStaffSearch" class="btn-clear-search" onclick="clearStaffSearch()">✕</button>
-          </div>
+        <div class="form-group">
+          <label>Вакансия:</label>
+          <select id="regVacancy" onchange="onRegVacancyChanged()" required></select>
         </div>
+        <div class="form-group">
+          <label>ФИО сотрудника:</label>
+          <input type="text" id="regFio" placeholder="Фамилия Имя Отчество" onblur="verifyFioOnBlur()" required>
+          <div id="fioAlert" class="status-alert"></div>
+        </div>
+        <div class="row-2">
+          <div class="form-group"><label>Телефон:</label><input type="text" id="regPhone" placeholder="+7 999 000-00-00"></div>
+          <div class="form-group"><label>Время начала:</label><input type="text" id="regTime" placeholder="20:00"></div>
+        </div>
+        <div class="row-2">
+          <div class="form-group"><label>Ставка:</label><input type="text" id="regRate" placeholder="3000"></div>
+          <div class="form-group"><label>Оплата:</label><select id="regPayment"><option value="после смены">После смены</option><option value="самозанятый">Самозанятый</option></select></div>
+        </div>
+        <div class="form-group"><label>Реферал / Кто пригласил:</label><input type="text" id="regReferral" placeholder="Необязательно"></div>
 
-        <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
-          <button type="button" class="btn-small-refresh" onclick="loadEmployees()" style="padding:7px 14px; font-size:12px;">🔄 Обновить смену</button>
-          <span id="badgeCount" class="badge-count">Записано: 0 чел.</span>
+        <div id="candidateWarnings" class="status-alert alert-danger"></div>
+
+        <button type="submit" id="btnRegSubmit" class="btn btn-primary" style="width:100%; margin-top:8px;">✓ Записать на смену</button>
+      </form>
+
+      <div style="margin-top:20px; background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <label style="font-weight:700; margin:0;">📋 Текст для кандидата (Генератор B7):</label>
+          <button type="button" class="btn-logout" onclick="copyGenMessage()">Скопировать</button>
+        </div>
+        <textarea id="genMessageBox" rows="5" readonly placeholder="Выберите дату выше для генерации текста сообщения..."></textarea>
+      </div>
+    </div>
+
+    <!-- 5. СПИСОК СМЕНЫ -->
+    <div id="shiftListTab" class="tab-content">
+      <div class="filter-panel">
+        <div class="row-3">
+          <div class="form-group" style="margin-bottom:0;"><label>Смена:</label><select id="listShift" onchange="onListShiftChanged()"><option value="день">День ☀️</option><option value="ночь">Ночь 🌙</option></select></div>
+          <div class="form-group" style="margin-bottom:0;"><label>Дата:</label><select id="listDate" onchange="loadShiftList()"></select></div>
+          <div class="form-group" style="margin-bottom:0;"><label>Вакансия:</label><select id="listVac" onchange="loadShiftList()"><option value="все">Все вакансии</option></select></div>
+        </div>
+        <div class="form-group" style="margin-top:10px; margin-bottom:0;">
+          <input type="text" id="globalSearchInput" placeholder="🔍 Глобальный поиск по всем сменам (ФИО или телефон)..." oninput="onGlobalSearchInput(this.value)">
+        </div>
+        <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+          <button type="button" class="btn-small-refresh" onclick="loadShiftList()">🔄 Обновить список</button>
+          <span id="shiftListBadge" class="badge-count">0 чел.</span>
         </div>
       </div>
-
       <div class="table-container">
         <table>
           <thead>
-            <tr>
-              <th style="width: 30px;">№</th>
-              <th>ФИО</th>
-              <th>Вакансия</th>
-              <th>Телефон</th>
-              <th>Статус</th>
-              <th style="width: 90px;">Действие</th>
-            </tr>
+            <tr><th>№</th><th>ФИО</th><th>Вакансия</th><th>Телефон</th><th>Время</th><th>Ставка</th><th>Действие</th></tr>
           </thead>
-          <tbody id="staffTableBody">
-            <tr>
-              <td colspan="6" style="text-align:center; padding:20px; color:var(--text-muted);">Загрузка списка смены...</td>
-            </tr>
-          </tbody>
+          <tbody id="shiftListTableBody"><tr><td colspan="7" style="text-align:center; padding:18px;">Выберите смену</td></tr></tbody>
         </table>
       </div>
+    </div>
 
-      <div class="summary-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <label style="font-size:14px; font-weight:bold; margin:0;">📋 Текст сводки для отправки в чат:</label>
-          <button type="button" class="btn-copy" onclick="copyStaffReport()">📋 Скопировать</button>
+    <!-- 6. СМЕНЫ И СТАТУСЫ -->
+    <div id="staffTab" class="tab-content">
+      <div class="filter-panel">
+        <div class="row-2">
+          <div class="form-group" style="margin-bottom:0;"><label>Смена:</label><select id="selShift" onchange="onStaffShiftChange()"><option value="день">☀️ День</option><option value="ночь">🌙 Ночь</option></select></div>
+          <div class="form-group" style="margin-bottom:0;"><label>Дата смены:</label><select id="selDate" onchange="loadEmployees()"></select></div>
         </div>
-        <textarea id="staffReportBox" style="font-family:monospace; min-height:170px;" readonly placeholder="Сводка будет рассчитана после загрузки смены..."></textarea>
+        <div class="form-group" style="margin-top:10px; margin-bottom:0;">
+          <input type="text" id="staffSearchInput" placeholder="🔍 Поиск в смене (ФИО или телефон)..." oninput="onStaffSearchChanged()">
+        </div>
+        <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+          <button type="button" class="btn-small-refresh" onclick="loadEmployees()">🔄 Обновить</button>
+          <span id="badgeCount" class="badge-count">0 чел.</span>
+        </div>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr><th>№</th><th>ФИО</th><th>Вакансия</th><th>Телефон</th><th>Статус</th><th>Действие</th></tr>
+          </thead>
+          <tbody id="staffTableBody"><tr><td colspan="6" style="text-align:center; padding:18px;">Загрузка...</td></tr></tbody>
+        </table>
+      </div>
+      <div style="margin-top:14px; background:#fafbfc; border:1px solid var(--border); border-radius:8px; padding:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <label style="font-weight:700; margin:0;">📋 Сводка для чата:</label>
+          <button type="button" class="btn-logout" onclick="copyStaffReport()">Скопировать</button>
+        </div>
+        <textarea id="staffReportBox" rows="6" readonly></textarea>
       </div>
     </div>
   </div>
 
-  <!-- Модальное окно смены статуса сотрудника -->
+  <!-- Модальное окно смены статуса -->
   <div id="modalOverlay" class="modal-overlay">
     <div class="modal">
       <div class="modal-header">✏️ Изменение статуса сотрудника</div>
       <div class="modal-body">
         <div>Сотрудник: <b id="mFio" style="color:var(--primary);"></b></div>
         <div style="margin-top:4px;">Вакансия: <b id="mVac"></b></div>
-        <div style="margin-top:4px; margin-bottom:12px;">Текущий статус: <span id="mCurrentStatus" style="font-weight:600;"></span></div>
-
+        <div style="margin-top:4px; margin-bottom:12px;">Текущий: <span id="mCurrentStatus" style="font-weight:600;"></span></div>
         <div class="form-group">
           <label>Новый статус:</label>
           <select id="mStatusSelect" onchange="onStatusSelectChange()">
@@ -535,27 +357,35 @@
             <option value="ЧС по ВБ">ЧС по ВБ</option>
             <option value="ЧС по МП">ЧС по МП</option>
             <option value="ЧС по КЛАДОВЩИКИ">ЧС по КЛАДОВЩИКИ</option>
-            <option value="ЧС_ДАТА">ЧС по (ручной ввод даты)</option>
+            <option value="ЧС_ДАТА">ЧС по дате (ручной ввод)</option>
             <option value="запись">запись (вернуть)</option>
           </select>
         </div>
+        <div class="form-group" id="subGroupNevykhod"><label>Причина невыхода:</label><select id="mSubStatus"><option value="Личные обст-ва">Личные обст-ва</option><option value="неизвестно">неизвестно</option></select></div>
+        <div class="form-group" id="subGroupCsDate" style="display:none;"><label>Дата окончания ЧС:</label><input type="text" id="mCsDate" placeholder="ДД.ММ.ГГГГ"></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal(false)">Отмена</button>
+        <button type="button" class="btn btn-blue" onclick="closeModal(true)">Подтвердить</button>
+      </div>
+    </div>
+  </div>
 
-        <div class="form-group" id="subGroupNevykhod" style="display:block;">
-          <label>Причина невыхода (подстатус):</label>
-          <select id="mSubStatus">
-            <option value="Личные обст-ва">Личные обст-ва</option>
-            <option value="неизвестно">неизвестно</option>
-          </select>
-        </div>
-
-        <div class="form-group" id="subGroupCsDate" style="display:none;">
-          <label>Дата окончания ЧС (напр. 15.11.2026):</label>
-          <input type="text" id="mCsDate" placeholder="ДД.ММ.ГГГГ">
+  <!-- Модальное окно перевода на вакансию -->
+  <div id="moveModalOverlay" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">🔄 Перевод на другую вакансию</div>
+      <div class="modal-body">
+        <div>Сотрудник: <b id="moveModalFio" style="color:var(--primary);"></b></div>
+        <div style="margin:4px 0 10px;">Текущая: <b id="moveModalCurrentVac"></b></div>
+        <div class="form-group">
+          <label>Новая вакансия:</label>
+          <select id="moveModalSelect"></select>
         </div>
       </div>
       <div class="modal-actions">
-        <button type="button" class="btn" style="background:#f1f3f4; color:#333; padding:8px 14px;" onclick="closeModal(false)">Отмена</button>
-        <button type="button" class="btn btn-primary" style="padding:8px 14px;" onclick="closeModal(true)">Подтвердить</button>
+        <button type="button" class="btn btn-secondary" onclick="closeMoveModal(false)">Отмена</button>
+        <button type="button" class="btn btn-blue" onclick="closeMoveModal(true)">Перевести</button>
       </div>
     </div>
   </div>
@@ -565,56 +395,69 @@
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyi-Nhx8lEljyYp1zKTjFfDLfUEyaTjJVyrHZOHIEerTVGZY9ZaJEvr9HOmWpHpWapD/exec";
 
-    // PWA Install Prompt
-    let deferredPrompt = null;
-    const pwaBanner = document.getElementById('pwaBanner');
-    const pwaInstallBtn = document.getElementById('pwaInstallBtn');
+    // 6998 - HR (подбор), 4201 - Руководитель
+    const ROLES_CONFIG = {
+      "6998": { role: "HR", tabs: ["regTab", "shiftListTab", "staffTab"] },
+      "4201": { role: "Руководитель", tabs: ["kizTab", "cameraTab", "calcTab", "regTab", "shiftListTab", "staffTab"] }
+    };
 
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      if (pwaBanner) pwaBanner.style.display = 'flex';
-    });
-
-    if (pwaInstallBtn) {
-      pwaInstallBtn.addEventListener('click', async () => {
-        if (!deferredPrompt) {
-          showToast('Используйте меню браузера для установки');
-          return;
-        }
-        deferredPrompt.prompt();
-        const choiceResult = await deferredPrompt.userChoice;
-        if (choiceResult.outcome === 'accepted') {
-          pwaBanner.style.display = 'none';
-        }
-        deferredPrompt = null;
-      });
+    function checkAuthOnStart() {
+      const savedPin = localStorage.getItem("sklad_mp_pin");
+      if (savedPin && ROLES_CONFIG[savedPin]) applyRole(savedPin);
+      else {
+        localStorage.removeItem("sklad_mp_pin");
+        document.getElementById("authOverlay").style.display = "flex";
+        document.getElementById("mainContainer").style.display = "none";
+        setTimeout(() => document.getElementById("pinInput").focus(), 200);
+      }
     }
 
-    window.addEventListener('appinstalled', () => {
-      if (pwaBanner) pwaBanner.style.display = 'none';
-      showToast('✓ Приложение успешно установлено!');
-    });
+    function verifyPin() {
+      const pin = document.getElementById("pinInput").value.trim();
+      if (ROLES_CONFIG[pin]) {
+        localStorage.setItem("sklad_mp_pin", pin);
+        applyRole(pin);
+      } else {
+        document.getElementById("authError").style.display = "block";
+        document.getElementById("pinInput").value = "";
+      }
+    }
 
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sklad-mp/sw.js', { scope: '/sklad-mp/' })
-          .then(() => console.log('SW зарегистрирован'))
-          .catch((err) => console.log('Ошибка SW:', err));
+    function applyRole(pin) {
+      const cfg = ROLES_CONFIG[pin];
+      document.getElementById("authOverlay").style.display = "none";
+      document.getElementById("mainContainer").style.display = "block";
+      document.getElementById("userRoleBadge").textContent = cfg.role;
+
+      const tabs = ["kizTab", "cameraTab", "calcTab", "regTab", "shiftListTab", "staffTab"];
+      tabs.forEach(t => {
+        const btn = document.getElementById("tabBtn" + t.charAt(0).toUpperCase() + t.slice(1).replace("Tab", ""));
+        if (btn) btn.style.display = cfg.tabs.includes(t) ? "block" : "none";
       });
+
+      const firstTab = cfg.tabs[0];
+      const btnMap = { "kizTab": "tabBtnKiz", "regTab": "tabBtnReg" };
+      switchTab(firstTab, document.getElementById(btnMap[firstTab] || "tabBtnStaff"));
+    }
+
+    function logout() {
+      if (confirm("Выйти из профиля?")) {
+        localStorage.removeItem("sklad_mp_pin");
+        location.reload();
+      }
     }
 
     async function callApi(action, data = null) {
       if (data) {
-        const response = await fetch(API_URL, {
+        const res = await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: action, data: data })
+          body: JSON.stringify({ action, data })
         });
-        return await response.json();
+        return await res.json();
       } else {
-        const response = await fetch(`${API_URL}?action=${action}`);
-        return await response.json();
+        const res = await fetch(`${API_URL}?action=${action}`);
+        return await res.json();
       }
     }
 
@@ -625,373 +468,300 @@
       toast.textContent = text;
       toast.style.backgroundColor = isError ? "#c82333" : "#28a745";
       toast.className = "show";
-      toastTimeout = setTimeout(function() { toast.className = ""; }, 3500);
+      toastTimeout = setTimeout(() => toast.className = "", 3500);
     }
 
     function switchTab(tabId, el) {
       document.querySelectorAll(".tab-content").forEach(tc => tc.classList.remove("active"));
       document.querySelectorAll(".nav-tab").forEach(nt => nt.classList.remove("active"));
       document.getElementById(tabId).classList.add("active");
-      el.classList.add("active");
-      if (tabId === "calcTab") recalculateComplexity();
-      if (tabId === "staffTab" && (!staffDatesData || !staffDatesData.dayDates.length)) {
-        loadStaffDates();
-      }
+      if (el) el.classList.add("active");
+
+      if (tabId === "regTab" && (!staffInitData || !staffInitData.dayDates.length)) loadStaffInitial();
+      if (tabId === "shiftListTab" && (!staffInitData || !staffInitData.dayDates.length)) loadStaffInitial();
+      if (tabId === "staffTab" && (!staffDatesData || !staffDatesData.dayDates.length)) loadStaffDates();
     }
 
     // ==========================================
-    // ЛОГИКА ВКЛАДКИ 1: КИЗЫ
+    // ЛОГИКА ВКЛАДКИ: ЗАПИСЬ НА СМЕНУ
     // ==========================================
-    var ALL_CONSTRUCTORS_DATA = [];
+    var staffInitData = { dayDates: [], nightDates: [], vacanciesByShift: { 'день': [], 'ночь': [] } };
 
-    function setSingleKizTable(num, btnElement) {
-      document.getElementById("selectedKizTable").value = num;
-      document.querySelectorAll("#kizTableButtons .btn-toggle").forEach(b => b.classList.remove("active"));
-      btnElement.classList.add("active");
-    }
-
-    function resetKizTableSelection() {
-      document.getElementById("selectedKizTable").value = "";
-      document.querySelectorAll("#kizTableButtons .btn-toggle").forEach(b => b.classList.remove("active"));
-    }
-
-    function forceClearKizField() {
-      var area = document.getElementById("kizCodes");
-      if (area) area.value = "";
-      var linkInput = document.getElementById("kizLink");
-      if (linkInput) linkInput.value = "";
-      resetKizTableSelection();
-      if (area) area.focus();
-    }
-
-    function updateConstructorsDropdown(list) {
-      var constrSelect = document.getElementById("kizConstructor");
-      var currentVal = constrSelect.value;
-      constrSelect.innerHTML = "<option value=''>-- Выберите из списка --</option>";
-      if (list && list.length > 0) {
-        list.forEach(c => {
-          var opt = document.createElement("option");
-          opt.value = c;
-          opt.textContent = c;
-          constrSelect.appendChild(opt);
-        });
-      }
-      if (currentVal) constrSelect.value = currentVal;
-    }
-
-    function onKizSearchInput(query) {
-      var q = (query || "").toLowerCase().trim();
-      var constrSelect = document.getElementById("kizConstructor");
-      constrSelect.innerHTML = "<option value=''>-- Выберите из списка --</option>";
-
-      var matched = [];
-      ALL_CONSTRUCTORS_DATA.forEach(item => {
-        if (!q || item.name.toLowerCase().indexOf(q) !== -1 || (item.barcode && item.barcode.toLowerCase().indexOf(q) !== -1)) {
-          matched.push(item.name);
-        }
-      });
-      matched.forEach(name => {
-        var opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-        constrSelect.appendChild(opt);
-      });
-      if (matched.length === 1) constrSelect.value = matched[0];
-    }
-
-    function onKizSelectChanged(val) {
-      if (val) document.getElementById("kizSearchFilter").value = val;
-    }
-
-    async function refreshConstructorsList(showToastMsg) {
-      if (showToastMsg) showToast("Обновление списка конструкторов...");
+    async function loadStaffInitial() {
       try {
-        const resp = await callApi('getInitialData');
-        if (resp && resp.constructorsDetailed) {
-          ALL_CONSTRUCTORS_DATA = resp.constructorsDetailed;
-          updateConstructorsDropdown(resp.constructors);
+        const res = await callApi('getStaffInitialData');
+        if (res) {
+          staffInitData = res;
+          populateRegSelectors();
+          populateListSelectors();
         }
-        if (showToastMsg) showToast("✓ Список конструкторов обновлен (" + (resp.constructors ? resp.constructors.length : 0) + " шт.)");
-      } catch (err) {
-        if (showToastMsg) showToast("Ошибка: " + err.message, true);
-      }
+      } catch (e) { showToast('Ошибка связи со справочниками смен: ' + e.message, true); }
     }
 
-    async function submitKiz() {
-      var table = document.getElementById("selectedKizTable").value;
-      var kizInput = document.getElementById("kizCodes");
-      var linkInput = document.getElementById("kizLink");
-      var kizText = kizInput ? kizInput.value.trim() : "";
+    function populateRegSelectors() {
+      var shift = document.getElementById("regShift").value;
+      var dateSel = document.getElementById("regDate");
+      dateSel.innerHTML = "";
+      (shift === "ночь" ? staffInitData.nightDates : staffInitData.dayDates).forEach(d => {
+        var opt = document.createElement("option"); opt.value = d; opt.textContent = d; dateSel.appendChild(opt);
+      });
+      onRegShiftChanged();
+    }
 
-      if (!table) { showToast("Выберите стол кнопкой!", true); return; }
-      if (!kizText) { showToast("Поле КИЗов пустое!", true); if (kizInput) kizInput.focus(); return; }
+    function onRegShiftChanged() {
+      var shift = document.getElementById("regShift").value;
+      var vacSel = document.getElementById("regVacancy");
+      vacSel.innerHTML = "";
+      var vacs = staffInitData.vacanciesByShift[shift] || [];
+      vacs.forEach(v => {
+        var opt = document.createElement("option"); opt.value = v.name; opt.textContent = v.name; vacSel.appendChild(opt);
+      });
+      onRegVacancyChanged();
+      updateGenMessage();
+    }
 
+    function onRegVacancyChanged() {
+      var shift = document.getElementById("regShift").value;
+      var vac = document.getElementById("regVacancy").value;
+      var vacs = staffInitData.vacanciesByShift[shift] || [];
+      var found = vacs.find(v => v.name === vac);
+      if (found) {
+        document.getElementById("regRate").value = found.rate || "";
+        var timePart = (found.schedule || "").split("–")[0].trim();
+        document.getElementById("regTime").value = timePart || "";
+      }
+      checkCandidateDetails();
+    }
+
+    async function verifyFioOnBlur() {
+      var fio = document.getElementById("regFio").value.trim();
+      var alertBox = document.getElementById("fioAlert");
+      if (!fio) { alertBox.style.display = "none"; return; }
+      try {
+        const res = await callApi('verifyEmployeeWithSpravochnik', { fio });
+        if (res) {
+          alertBox.style.display = "block";
+          if (res.status === 'exact') {
+            alertBox.className = "status-alert alert-success";
+            alertBox.textContent = `✓ Найден в справочнике: ${res.matchedName}`;
+            if (res.phone && !document.getElementById("regPhone").value) document.getElementById("regPhone").value = res.phone;
+          } else if (res.status === 'fuzzy') {
+            alertBox.className = "status-alert alert-warning";
+            alertBox.textContent = `⚠️ Найдено совпадение: ${res.matchedName}. Заполняем?`;
+            if (res.phone && !document.getElementById("regPhone").value) document.getElementById("regPhone").value = res.phone;
+            document.getElementById("regFio").value = res.matchedName;
+          } else {
+            alertBox.className = "status-alert alert-warning";
+            alertBox.textContent = res.message;
+          }
+        }
+      } catch (e) {}
+      checkCandidateDetails();
+    }
+
+    async function checkCandidateDetails() {
+      var fio = document.getElementById("regFio").value.trim();
+      var date = document.getElementById("regDate").value;
+      var shift = document.getElementById("regShift").value;
+      var vac = document.getElementById("regVacancy").value;
+      var warnBox = document.getElementById("candidateWarnings");
+      warnBox.style.display = "none"; warnBox.innerHTML = "";
+      if (!fio || !date || !vac) return;
+
+      try {
+        const res = await callApi('checkCandidate', { fio, date, shift, vacancy: vac });
+        if (res) {
+          var warns = [];
+          if (res.alreadyRegistered) warns.push(`❌ Сотрудник УЖЕ записан на эту смену (${res.alreadyRegistered.vacancy})!`);
+          if (res.blacklist) warns.push(`⛔ ЧС: ${res.blacklist.type} (${res.blacklist.reason})!`);
+          if (res.absences > 0) warns.push(`⚠️ Невыходы ранее: ${res.absences} раз!`);
+          if (res.remainingSpots !== null) warns.push(`Остаток мест по Чек-листу: ${res.remainingSpots}`);
+          if (warns.length > 0) {
+            warnBox.style.display = "block";
+            warnBox.innerHTML = warns.join("<br>");
+          }
+        }
+      } catch (e) {}
+      updateGenMessage();
+    }
+
+    async function submitRegistration() {
+      var fio = document.getElementById("regFio").value.trim();
+      if (!fio) { showToast("Укажите ФИО!", true); return; }
       var payload = {
-        date: document.getElementById("kizDate").value,
-        shift: document.getElementById("kizShift").value,
-        table: table,
-        constructorName: document.getElementById("kizConstructor").value,
-        link: linkInput ? linkInput.value.trim() : "",
-        kiz: kizText
+        shiftDate: document.getElementById("regDate").value,
+        shiftType: document.getElementById("regShift").value,
+        vacancy: document.getElementById("regVacancy").value,
+        fio: fio,
+        phone: document.getElementById("regPhone").value.trim(),
+        startTime: document.getElementById("regTime").value.trim(),
+        rate: document.getElementById("regRate").value.trim(),
+        paymentType: document.getElementById("regPayment").value,
+        referral: document.getElementById("regReferral").value.trim(),
+        status: "запись"
       };
-
-      showToast("Сохранение КИЗов в таблицу...");
+      showToast("Запись сотрудника...");
+      document.getElementById("btnRegSubmit").disabled = true;
       try {
-        const res = await callApi('saveKizData', payload);
+        const res = await callApi('saveRegistration', payload);
+        document.getElementById("btnRegSubmit").disabled = false;
         if (res && res.success) {
-          showToast("✓ КИЗы записаны (строка " + res.row + ")");
-          if (kizInput) kizInput.value = "";
-          if (linkInput) linkInput.value = "";
-          resetKizTableSelection();
-          if (kizInput) kizInput.focus();
+          showToast("✓ Успешно записан на смену!");
+          document.getElementById("regFio").value = "";
+          document.getElementById("regPhone").value = "";
+          document.getElementById("fioAlert").style.display = "none";
+          document.getElementById("candidateWarnings").style.display = "none";
         } else {
-          showToast("Ошибка: " + (res.error || "неизвестно"), true);
+          showToast("Ошибка: " + (res ? res.error : "неизвестно"), true);
         }
-      } catch (err) {
-        showToast("Ошибка связи: " + err.message, true);
+      } catch (e) {
+        document.getElementById("btnRegSubmit").disabled = false;
+        showToast("Ошибка связи: " + e.message, true);
       }
     }
 
-    // ==========================================
-    // ЛОГИКА ВКЛАДКИ 2: КАМЕРЫ
-    // ==========================================
-    var timerRunning = false;
-    var timerStartTime = null;
-    var timerIntervalId = null;
-    var selectedCamTables = new Set();
-    var serverLastIntervals = {};
-
-    function formatTime2Digits(n) { return n < 10 ? "0" + n : n; }
-    function getTimeString(date) {
-      return formatTime2Digits(date.getHours()) + ":" + formatTime2Digits(date.getMinutes()) + ":" + formatTime2Digits(date.getSeconds());
-    }
-
-    function startTimer() {
-      if (timerRunning) { showToast("Таймер уже запущен!"); return; }
-      var startInp = document.getElementById("camStartTime");
-      timerRunning = true;
-      timerStartTime = new Date();
-      startInp.value = getTimeString(timerStartTime);
-      document.getElementById("camEndTime").value = "";
-      document.getElementById("camDuration").value = "";
-
-      timerIntervalId = setInterval(() => {
-        var diffMs = new Date() - timerStartTime;
-        var totalSec = Math.floor(diffMs / 1000);
-        var h = Math.floor(totalSec / 3600);
-        var m = Math.floor((totalSec % 3600) / 60);
-        var s = totalSec % 60;
-        document.getElementById("timerDisplay").textContent =
-          formatTime2Digits(h) + ":" + formatTime2Digits(m) + ":" + formatTime2Digits(s);
-      }, 1000);
-      showToast("Таймер отсмотра запущен");
-    }
-
-    function stopTimer() {
-      if (!timerRunning) { showToast("Таймер сейчас не запущен", true); return; }
-      timerRunning = false;
-      clearInterval(timerIntervalId);
-      var stopTime = new Date();
-      var durInp = document.getElementById("camDuration");
-      document.getElementById("camEndTime").value = getTimeString(stopTime);
-
-      var diffMs = stopTime - timerStartTime;
-      var totalSec = Math.floor(diffMs / 1000);
-      var h = Math.floor(totalSec / 3600);
-      var m = Math.floor((totalSec % 3600) / 60);
-      var s = totalSec % 60;
-      var durStr = formatTime2Digits(h) + ":" + formatTime2Digits(m) + ":" + formatTime2Digits(s);
-      durInp.value = durStr;
-      document.getElementById("timerDisplay").textContent = durStr;
-      showToast("Таймер остановлен (" + durStr + ")");
-    }
-
-    function toggleCamTable(num, btnElement) {
-      if (selectedCamTables.has(num)) {
-        selectedCamTables.delete(num);
-        btnElement.classList.remove("active");
-      } else {
-        selectedCamTables.add(num);
-        btnElement.classList.add("active");
-      }
-      var arr = Array.from(selectedCamTables).sort((a,b) => a - b);
-      document.getElementById("camTablesSelectedLabel").textContent = arr.length > 0 ? arr.join(", ") : "не выбрано";
-      updateTableIntervalHint(arr);
-    }
-
-    function updateTableIntervalHint(tablesArr) {
-      var hintBox = document.getElementById("tableHintBox");
-      if (tablesArr.length === 0) { hintBox.style.display = "none"; return; }
-      var hints = [];
-      tablesArr.forEach(t => {
-        hints.push(serverLastIntervals[t] ? "Стол " + t + ": прошлый отсмотр <b>" + serverLastIntervals[t] + "</b>" : "Стол " + t + ": нет недавних интервалов");
-      });
-      hintBox.innerHTML = "💡 <strong>История по столам:</strong><br>" + hints.join("<br>");
-      hintBox.style.display = "block";
-    }
-
-    function selectCamera(val, btn) {
-      document.getElementById("camCamera").value = val;
-      btn.parentElement.querySelectorAll(".btn-toggle").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-    }
-    function selectWhatChecked(val, btn) {
-      document.getElementById("camWhatChecked").value = val;
-      btn.parentElement.querySelectorAll(".btn-toggle").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-    }
-    function selectResult(val, btn) {
-      document.getElementById("camResult").value = val;
-      btn.parentElement.querySelectorAll(".btn-toggle").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-    }
-
-    async function onDateChanged() {
-      var d = document.getElementById("camDate").value;
-      if (!d) return;
+    async function updateGenMessage() {
+      var date = document.getElementById("regDate").value;
+      if (!date) return;
       try {
-        const resp = await callApi('getTodayTotalInspectionTime&date=' + d);
-        document.getElementById("accumulatedTimeValue").textContent = (resp && resp.total) ? resp.total : "00:00:00";
+        const res = await callApi(`getGeneratorMessage&date=${encodeURIComponent(date)}`);
+        if (res && res.message) document.getElementById("genMessageBox").value = res.message;
       } catch (e) {}
     }
 
-    async function submitCamera() {
-      var tablesArr = Array.from(selectedCamTables).sort((a,b) => a - b);
-      if (tablesArr.length === 0) { showToast("Выберите хотя бы один стол!", true); return; }
-
-      var payload = {
-        date: document.getElementById("camDate").value,
-        startTime: document.getElementById("camStartTime").value.trim(),
-        endTime: document.getElementById("camEndTime").value.trim(),
-        duration: document.getElementById("camDuration").value.trim(),
-        tables: tablesArr.join(","),
-        camera: document.getElementById("camCamera").value,
-        whatChecked: document.getElementById("camWhatChecked").value,
-        result: document.getElementById("camResult").value,
-        cameraInterval: document.getElementById("camInterval").value.trim(),
-        comments: document.getElementById("camComments").value.trim()
-      };
-
-      showToast("Сохранение отсмотра...");
-      try {
-        const res = await callApi('saveCameraData', payload);
-        if (res && res.success) {
-          showToast("✓ Отсмотр записан (строка " + res.row + ")");
-          if (res.targetDate) {
-            const resp = await callApi('getTodayTotalInspectionTime&date=' + res.targetDate);
-            if (resp && resp.total) document.getElementById("accumulatedTimeValue").textContent = resp.total;
-          }
-          if (timerRunning) stopTimer();
-          document.getElementById("timerDisplay").textContent = "00:00:00";
-          document.getElementById("camStartTime").value = "";
-          document.getElementById("camEndTime").value = "";
-          document.getElementById("camDuration").value = "";
-          document.getElementById("camInterval").value = "";
-          document.getElementById("camComments").value = "";
-          if (payload.cameraInterval) {
-            tablesArr.forEach(t => serverLastIntervals[t] = payload.cameraInterval);
-            updateTableIntervalHint(tablesArr);
-          }
-        } else {
-          showToast("Ошибка: " + (res.error || "неизвестно"), true);
-        }
-      } catch (err) {
-        showToast("Ошибка связи: " + err.message, true);
-      }
+    function copyGenMessage() {
+      var t = document.getElementById("genMessageBox").value;
+      if (!t) return;
+      navigator.clipboard.writeText(t).then(() => showToast("📋 Текст сообщения скопирован!"));
     }
 
     // ==========================================
-    // ЛОГИКА ВКЛАДКИ 3: КАЛЬКУЛЯТОР
+    // ЛОГИКА ВКЛАДКИ: СПИСОК СМЕНЫ
     // ==========================================
-    function searchCatalogConstructor(query) {
-      var resBox = document.getElementById("calcSearchResult");
-      var q = (query || "").toLowerCase().trim();
-      if (!q) { resBox.innerHTML = ""; return; }
+    var currentShiftListRows = [];
+    var moveRowData = null;
 
-      var matches = ALL_CONSTRUCTORS_DATA.filter(item => {
-        return item.name.toLowerCase().indexOf(q) !== -1 || (item.barcode && item.barcode.toLowerCase().indexOf(q) !== -1);
+    function populateListSelectors() {
+      var shift = document.getElementById("listShift").value;
+      var dateSel = document.getElementById("listDate");
+      dateSel.innerHTML = "";
+      (shift === "ночь" ? staffInitData.nightDates : staffInitData.dayDates).forEach(d => {
+        var opt = document.createElement("option"); opt.value = d; opt.textContent = d; dateSel.appendChild(opt);
       });
-      if (matches.length === 0) {
-        resBox.innerHTML = "<div style='color:#a0aec0; font-size:13px; padding:6px 0;'>Ничего не найдено</div>";
+      var vacSel = document.getElementById("listVac");
+      vacSel.innerHTML = "<option value='все'>Все вакансии</option>";
+      (staffInitData.vacanciesByShift[shift] || []).forEach(v => {
+        var opt = document.createElement("option"); opt.value = v.name; opt.textContent = v.name; vacSel.appendChild(opt);
+      });
+      loadShiftList();
+    }
+
+    function onListShiftChanged() {
+      populateListSelectors();
+    }
+
+    async function loadShiftList() {
+      var shift = document.getElementById("listShift").value;
+      var date = document.getElementById("listDate").value;
+      var vac = document.getElementById("listVac").value;
+      var tbody = document.getElementById("shiftListTableBody");
+      if (!date) return;
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:18px;">⏳ Загрузка списка...</td></tr>';
+      try {
+        const rows = await callApi(`getShiftEmployees&date=${encodeURIComponent(date)}&shift=${encodeURIComponent(shift)}&vacancy=${encodeURIComponent(vac)}`);
+        currentShiftListRows = rows || [];
+        renderShiftListTable(currentShiftListRows);
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:red; padding:18px;">Ошибка: ${e.message}</td></tr>`;
+      }
+    }
+
+    function renderShiftListTable(rows) {
+      var tbody = document.getElementById("shiftListTableBody");
+      document.getElementById("shiftListBadge").textContent = `${rows.length} чел.`;
+      tbody.innerHTML = "";
+      if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:18px;">Сотрудники не найдены</td></tr>';
         return;
       }
-      var html = "";
-      matches.slice(0, 5).forEach(item => {
-        html += "<div class='search-result-card'>" +
-          "<div style='font-weight:700; color:#1a202c; font-size:13px;'>" + item.name + "</div>" +
-          "<div style='font-size:12px; color:#4a5568;'><b>ШК:</b> " + item.barcode + "</div>" +
-          "<div style='display:flex; justify-content:space-between; margin-top:5px; font-size:12px;'>" +
-            "<span>В коробе: <b>" + item.boxesInBox + "</b></span>" +
-            "<span>Коэф кор: <b>" + item.coefBox + "</b></span>" +
-            "<span>Вложений: <b>" + item.totalInclusions + "</b></span>" +
-            "<span style='color:#2b6cb0; font-weight:800;'>Коэф: " + item.coefTotal + "</span>" +
-          "</div></div>";
+      rows.forEach((r, idx) => {
+        var tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td><b>${escapeHtml(r.fio)}</b></td>
+          <td>${escapeHtml(r.vacancy)}</td>
+          <td>${escapeHtml(r.phone || '—')}</td>
+          <td>${escapeHtml(r.time || '—')}</td>
+          <td>${escapeHtml(r.rate || '—')}</td>
+          <td style="white-space:nowrap;">
+            <button type="button" class="btn-logout" onclick="openMoveModal(${r.rowNumber})">Перевод</button>
+            <button type="button" class="btn-logout" style="color:var(--danger);" onclick="deleteFromShift(${r.rowNumber}, '${escapeHtml(r.fio)}', '${escapeHtml(r.date)}')">✕</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
       });
-      resBox.innerHTML = html;
     }
 
-    function recalculateComplexity() {
-      var baseSize = parseFloat(document.getElementById("newBoxSize").value) || 1.5;
-      var valves = parseFloat(document.getElementById("newBoxValves").value) || 0;
-      var vpp = parseFloat(document.getElementById("newBoxVpp").value) || 0;
-      var boxCoef = Math.round((baseSize + valves + vpp) * 10) / 10;
-
-      var packets = parseInt(document.getElementById("newPacketsCount").value, 10) || 0;
-      var manuals = parseInt(document.getElementById("newManualsCount").value, 10) || 0;
-      var stickers = parseInt(document.getElementById("newStickersCount").value, 10) || 0;
-      var extra = parseInt(document.getElementById("newExtraInclusionsCount").value, 10) || 0;
-      var manip = parseFloat(document.getElementById("newManipulations").value) || 0;
-
-      var inclusionsCount = packets + manuals + stickers + extra;
-      var inclusionsCoef = Math.round((inclusionsCount * 0.1 + manip) * 10) / 10;
-      var totalCoef = Math.round((boxCoef + inclusionsCoef) * 10) / 10;
-
-      document.getElementById("resBoxCoef").textContent = boxCoef.toFixed(1);
-      document.getElementById("resInclusionsVal").textContent = inclusionsCount + " шт. (" + inclusionsCoef.toFixed(1) + ")";
-      document.getElementById("resTotalCoef").textContent = totalCoef.toFixed(1);
-
-      return { boxCoef, inclusionsCount, inclusionsCoef, totalCoef };
-    }
-
-    async function submitNewConstructor() {
-      var name = document.getElementById("newConstrName").value.trim();
-      var barcode = document.getElementById("newConstrBarcode").value.trim();
-      var boxesInBox = document.getElementById("newConstrBoxesInBox").value.trim();
-
-      if (!name || !barcode) { showToast("Укажите название и штрихкод!", true); return; }
-      var calc = recalculateComplexity();
-      var payload = {
-        name: name, barcode: barcode, boxesInBox: boxesInBox,
-        coefBox: calc.boxCoef, inclusionsCount: calc.inclusionsCount, coefExtra: 0.1,
-        coefInclusions: calc.inclusionsCoef, coefTotal: calc.totalCoef
-      };
-
-      showToast("Добавление конструктора...");
-      document.getElementById("btnSaveConstructor").disabled = true;
-      try {
-        const res = await callApi('saveNewConstructorToCatalog', payload);
-        document.getElementById("btnSaveConstructor").disabled = false;
-        if (res && res.success) {
-          showToast("✓ Конструктор добавлен (строка " + res.row + ")!");
-          ALL_CONSTRUCTORS_DATA.push(res.item);
-          var constrSelect = document.getElementById("kizConstructor");
-          var opt = document.createElement("option");
-          opt.value = res.item.name;
-          opt.textContent = res.item.name;
-          constrSelect.appendChild(opt);
-          document.getElementById("newConstrName").value = "";
-          document.getElementById("newConstrBarcode").value = "";
-        } else {
-          showToast("Ошибка: " + (res.error || "неизвестно"), true);
-        }
-      } catch (err) {
-        document.getElementById("btnSaveConstructor").disabled = false;
-        showToast("Ошибка связи: " + err.message, true);
+    async function onGlobalSearchInput(q) {
+      if (!q || q.length < 3) {
+        if (!q) renderShiftListTable(currentShiftListRows);
+        return;
       }
+      try {
+        const rows = await callApi(`searchAllShiftsEmployees&query=${encodeURIComponent(q)}`);
+        renderShiftListTable(rows || []);
+      } catch (e) {}
+    }
+
+    async function deleteFromShift(rowNumber, fio, date) {
+      if (!confirm(`Удалить сотрудника ${fio} со смены?`)) return;
+      showToast("Удаление со смены...");
+      try {
+        const res = await callApi('deleteEmployeeFromShift', { rowNumber, expectedFio: fio, expectedDate: date });
+        if (res && res.success) {
+          showToast("✓ " + res.message);
+          loadShiftList();
+        } else showToast("Ошибка: " + (res ? res.error : "неизвестно"), true);
+      } catch (e) { showToast("Ошибка связи: " + e.message, true); }
+    }
+
+    function openMoveModal(rowNumber) {
+      var found = currentShiftListRows.find(r => r.rowNumber === rowNumber);
+      if (!found) return;
+      moveRowData = found;
+      document.getElementById("moveModalFio").textContent = found.fio;
+      document.getElementById("moveModalCurrentVac").textContent = found.vacancy;
+      var sel = document.getElementById("moveModalSelect");
+      sel.innerHTML = "";
+      var vacs = staffInitData.vacanciesByShift[found.shift.toLowerCase()] || [];
+      vacs.forEach(v => {
+        var opt = document.createElement("option"); opt.value = v.name; opt.textContent = v.name; sel.appendChild(opt);
+      });
+      document.getElementById("moveModalOverlay").style.display = "flex";
+    }
+
+    async function closeMoveModal(confirmed) {
+      document.getElementById("moveModalOverlay").style.display = "none";
+      if (!confirmed || !moveRowData) return;
+      var newVac = document.getElementById("moveModalSelect").value;
+      showToast("Перевод сотрудника...");
+      try {
+        const res = await callApi('moveEmployeeVacancy', {
+          rowNumber: moveRowData.rowNumber,
+          expectedFio: moveRowData.fio,
+          expectedDate: moveRowData.date,
+          newVacancy: newVac,
+          newShift: moveRowData.shift
+        });
+        if (res && res.success) {
+          showToast("✓ " + res.message);
+          loadShiftList();
+        } else showToast("Ошибка: " + (res ? res.error : "неизвестно"), true);
+      } catch (e) { showToast("Ошибка связи: " + e.message, true); }
     }
 
     // ==========================================
-    // ЛОГИКА ВКЛАДКИ 4: СМЕНЫ И СТАТУСЫ (ИЗ 2-Й ТАБЛИЦЫ)
+    // ЛОГИКА ВКЛАДКИ: СМЕНЫ И СТАТУСЫ
     // ==========================================
     var staffDatesData = { dayDates: [], nightDates: [] };
     var currentEmployees = [];
@@ -1002,25 +772,16 @@
         const data = await callApi('getShiftDates');
         staffDatesData = data || { dayDates: [], nightDates: [] };
         onStaffShiftChange();
-      } catch (e) {
-        showToast('Ошибка загрузки дат: ' + e.message, true);
-      }
+      } catch (e) {}
     }
 
     function onStaffShiftChange() {
       var shift = document.getElementById('selShift').value;
       var dateSelect = document.getElementById('selDate');
       dateSelect.innerHTML = '';
-      var dates = (shift === 'ночь') ? staffDatesData.nightDates : staffDatesData.dayDates;
-
-      if (dates && dates.length > 0) {
-        dates.forEach(d => {
-          var opt = document.createElement('option');
-          opt.value = d;
-          opt.textContent = d;
-          dateSelect.appendChild(opt);
-        });
-      }
+      (shift === 'ночь' ? staffDatesData.nightDates : staffDatesData.dayDates).forEach(d => {
+        var opt = document.createElement('option'); opt.value = d; opt.textContent = d; dateSelect.appendChild(opt);
+      });
       loadEmployees();
     }
 
@@ -1028,222 +789,269 @@
       var shift = document.getElementById('selShift').value;
       var date = document.getElementById('selDate').value;
       var tbody = document.getElementById('staffTableBody');
-
-      if (!date) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:18px; color:var(--text-muted);">Выберите дату смены</td></tr>';
-        return;
-      }
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:18px; color:var(--text-muted);">⏳ Загрузка сотрудников...</td></tr>';
-      document.getElementById('badgeCount').textContent = 'Загрузка...';
-
+      if (!date) return;
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:18px;">⏳ Загрузка сотрудников...</td></tr>';
       try {
         const rows = await callApi(`getShiftEmployeesData&date=${encodeURIComponent(date)}&shift=${encodeURIComponent(shift)}`);
         currentEmployees = rows || [];
-        applyStaffSearchFilter();
+        renderStaffTable(currentEmployees);
         updateStaffSummary(currentEmployees, date, shift);
       } catch (err) {
         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red; padding:18px;">Ошибка: ${err.message}</td></tr>`;
       }
     }
 
-    function normSearchStr(str) {
-      return String(str || '').toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9]/gi, '').trim();
-    }
-
-    function onStaffSearchChanged() {
-      var val = document.getElementById('staffSearchInput').value.trim();
-      document.getElementById('btnClearStaffSearch').style.display = val.length > 0 ? 'block' : 'none';
-      applyStaffSearchFilter();
-    }
-
-    function clearStaffSearch() {
-      var input = document.getElementById('staffSearchInput');
-      input.value = '';
-      document.getElementById('btnClearStaffSearch').style.display = 'none';
-      applyStaffSearchFilter();
-      input.focus();
-    }
-
-    function applyStaffSearchFilter() {
-      var query = document.getElementById('staffSearchInput').value.trim();
-      if (!query) {
-        renderStaffTable(currentEmployees, false);
-        return;
-      }
-      var normQ = normSearchStr(query);
-      var digitQ = query.replace(/\D/g, '');
-
-      var filtered = currentEmployees.filter(r => {
-        var normFio = normSearchStr(r.fio);
-        var phoneDigits = String(r.phone || '').replace(/\D/g, '');
-        return normFio.indexOf(normQ) !== -1 || (digitQ.length >= 3 && phoneDigits.indexOf(digitQ) !== -1);
-      });
-      renderStaffTable(filtered, true);
-    }
-
-    function renderStaffTable(rows, isFiltered) {
+    function renderStaffTable(rows) {
       var tbody = document.getElementById('staffTableBody');
-      var badge = document.getElementById('badgeCount');
-
-      badge.textContent = isFiltered ? `Найдено: ${rows.length} из ${currentEmployees.length}` : `Записано: ${rows.length} чел.`;
+      document.getElementById('badgeCount').textContent = `${rows.length} чел.`;
       tbody.innerHTML = '';
-
       if (rows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:18px; color:var(--text-muted);">${isFiltered ? 'Сотрудники не найдены' : 'На выбранную смену сотрудников нет'}</td></tr>`;
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:18px;">Сотрудники не найдены</td></tr>';
         return;
       }
-
       rows.forEach((r, idx) => {
         var tr = document.createElement('tr');
         var color = '#202124';
-        var stUpper = (r.status || '').toUpperCase();
-        if (stUpper.indexOf('НЕВЫХОД') !== -1 || stUpper.indexOf('ЧС') !== -1) color = '#d93025';
-        else if (stUpper.indexOf('ОПОЗД') !== -1 || stUpper.indexOf('УХОД') !== -1) color = '#f29900';
-        else if (stUpper.indexOf('БОЛЕЗН') !== -1) color = '#1a73e8';
+        var st = (r.status || '').toUpperCase();
+        if (st.includes('НЕВЫХОД') || st.includes('ЧС')) color = '#d93025';
+        else if (st.includes('ОПОЗД') || st.includes('УХОД')) color = '#f29900';
+        else if (st.includes('БОЛЕЗН')) color = '#1a73e8';
 
         tr.innerHTML = `
           <td>${idx + 1}</td>
           <td><b>${escapeHtml(r.fio)}</b></td>
           <td>${escapeHtml(r.vacancy)}</td>
           <td>${escapeHtml(r.phone || '—')}</td>
-          <td><span style="font-weight:600; color:${color};">${escapeHtml(r.status)}</span></td>
-          <td><button type="button" class="btn-edit-status" onclick="openStaffModalByRowNumber(${r.rowNumber})">✏️ Статус</button></td>
+          <td><span style="font-weight:700; color:${color};">${escapeHtml(r.status)}</span></td>
+          <td><button type="button" class="btn-logout" onclick="openStaffModal(${r.rowNumber})">✏️ Статус</button></td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    function openStaffModalByRowNumber(rowNumber) {
+    function onStaffSearchChanged() {
+      var q = document.getElementById('staffSearchInput').value.trim().toLowerCase();
+      if (!q) { renderStaffTable(currentEmployees); return; }
+      renderStaffTable(currentEmployees.filter(r => r.fio.toLowerCase().includes(q) || (r.phone && r.phone.includes(q))));
+    }
+
+    function openStaffModal(rowNumber) {
       var found = currentEmployees.find(r => r.rowNumber === rowNumber);
       if (!found) return;
       editRowData = found;
-
       document.getElementById('mFio').textContent = found.fio;
       document.getElementById('mVac').textContent = found.vacancy;
       document.getElementById('mCurrentStatus').textContent = found.status;
       document.getElementById('mStatusSelect').value = 'НЕВЫХОД';
-      document.getElementById('subGroupNevykhod').style.display = 'block';
-      document.getElementById('subGroupCsDate').style.display = 'none';
-      document.getElementById('mCsDate').value = '';
       document.getElementById('modalOverlay').style.display = 'flex';
     }
 
     function onStatusSelectChange() {
-      var val = document.getElementById('mStatusSelect').value;
-      document.getElementById('subGroupNevykhod').style.display = (val === 'НЕВЫХОД') ? 'block' : 'none';
-      document.getElementById('subGroupCsDate').style.display = (val === 'ЧС_ДАТА') ? 'block' : 'none';
+      var v = document.getElementById('mStatusSelect').value;
+      document.getElementById('subGroupNevykhod').style.display = (v === 'НЕВЫХОД') ? 'block' : 'none';
+      document.getElementById('subGroupCsDate').style.display = (v === 'ЧС_ДАТА') ? 'block' : 'none';
     }
 
     async function closeModal(confirmed) {
-      if (!confirmed) {
-        document.getElementById('modalOverlay').style.display = 'none';
-        editRowData = null;
-        return;
-      }
-      if (!editRowData) return;
-
-      var baseVal = document.getElementById('mStatusSelect').value;
-      var finalStatus = baseVal;
-      if (baseVal === 'НЕВЫХОД') {
-        finalStatus = 'НЕВЫХОД (' + document.getElementById('mSubStatus').value + ')';
-      } else if (baseVal === 'ЧС_ДАТА') {
-        var d = document.getElementById('mCsDate').value.trim();
-        if (!d) { showToast('Укажите дату ЧС!', true); return; }
-        finalStatus = 'ЧС по ' + d;
-      }
-
       document.getElementById('modalOverlay').style.display = 'none';
-      showToast('Сохранение статуса в таблицу...');
+      if (!confirmed || !editRowData) return;
+      var val = document.getElementById('mStatusSelect').value;
+      var status = val;
+      if (val === 'НЕВЫХОД') status = 'НЕВЫХОД (' + document.getElementById('mSubStatus').value + ')';
+      else if (val === 'ЧС_ДАТА') status = 'ЧС по ' + document.getElementById('mCsDate').value.trim();
 
+      showToast("Сохранение статуса...");
       try {
-        const res = await callApi('saveNewStatus', {
-          rowNumber: editRowData.rowNumber,
-          expectedFio: editRowData.fio,
-          expectedDate: editRowData.date,
-          newStatus: finalStatus
-        });
-        if (res && res.success) {
-          showToast('✅ ' + res.message);
-          loadEmployees();
-        } else {
-          showToast('Ошибка: ' + (res ? res.error : 'Неизвестно'), true);
-        }
-      } catch (err) {
-        showToast('Ошибка связи: ' + err.message, true);
-      }
+        const res = await callApi('saveNewStatus', { rowNumber: editRowData.rowNumber, expectedFio: editRowData.fio, expectedDate: editRowData.date, newStatus: status });
+        if (res && res.success) { showToast("✓ " + res.message); loadEmployees(); }
+        else showToast("Ошибка: " + (res ? res.error : "неизвестно"), true);
+      } catch (e) { showToast("Ошибка связи: " + e.message, true); }
     }
 
     function updateStaffSummary(rows, date, shift) {
       var total = rows.length;
-      var illnessList = [], personalList = [], unknownList = [], csList = [], leaveList = [], lateList = [];
-
+      var ill = [], pers = [], unk = [], cs = [], leave = [], late = [];
       rows.forEach(r => {
-        var st = (r.status || '').toLowerCase();
-        var fio = r.fio;
-        if (st.indexOf('болезн') !== -1 || st.indexOf('больнич') !== -1) illnessList.push(fio);
-        else if (st.indexOf('личные') !== -1 || st.indexOf('обст-ва') !== -1 || st.indexOf('обстоят') !== -1) personalList.push(fio);
-        else if (st.indexOf('чс') !== -1) csList.push(fio);
-        else if (st.indexOf('уход') !== -1) leaveList.push(fio);
-        else if (st.indexOf('опозд') !== -1) lateList.push(fio);
-        else if (st.indexOf('невыход') !== -1) unknownList.push(fio);
+        var s = (r.status || '').toLowerCase();
+        if (s.includes('болезн') || s.includes('больнич')) ill.push(r.fio);
+        else if (s.includes('личные') || s.includes('обст-ва')) pers.push(r.fio);
+        else if (s.includes('чс')) cs.push(r.fio);
+        else if (s.includes('уход')) leave.push(r.fio);
+        else if (s.includes('опозд')) late.push(r.fio);
+        else if (s.includes('невыход')) unk.push(r.fio);
       });
-
-      var totalAbsent = illnessList.length + personalList.length + unknownList.length + csList.length + leaveList.length;
-      var absentPercent = total > 0 ? ((totalAbsent / total) * 100).toFixed(1) : '0';
-
-      function fmt(arr) {
-        return arr.length === 0 ? '0 человек' : `${arr.length} чел. (${arr.join(', ')})`;
-      }
-
+      var absent = ill.length + pers.length + unk.length + cs.length + leave.length;
+      var pct = total > 0 ? ((absent / total) * 100).toFixed(1) : '0';
+      function fmt(a) { return a.length === 0 ? '0 чел.' : `${a.length} чел. (${a.join(', ')})`; }
       var lines = [
-        `📊 СВОДКА за смену ${date} (${shift}):`,
-        `Всего записано на смену — ${total} человек`,
-        `Невыходы — ${totalAbsent} человек (${absentPercent}%)`,
-        `Опоздания — ${lateList.length} человек`,
+        `📊 СВОДКА ${date} (${shift}):`,
+        `Всего записано — ${total} чел.`,
+        `Невыходы — ${absent} чел. (${pct}%)`,
+        `Опоздания — ${late.length} чел.`,
         '',
-        'Разбивка по причинам:',
-        `• Болезнь — ${fmt(illnessList)}`,
-        `• Личные обстоятельства — ${fmt(personalList)}`,
-        `• Неизвестно — ${fmt(unknownList)}`,
-        `• ЧС — ${fmt(csList)}`,
-        `• Уход со смены — ${fmt(leaveList)}`,
-        `• Опоздания — ${fmt(lateList)}`
+        `• Болезнь — ${fmt(ill)}`,
+        `• Личные обстоятельства — ${fmt(pers)}`,
+        `• Неизвестно — ${fmt(unk)}`,
+        `• ЧС — ${fmt(cs)}`,
+        `• Уход со смены — ${fmt(leave)}`,
+        `• Опоздания — ${fmt(late)}`
       ];
       document.getElementById('staffReportBox').value = lines.join('\n');
     }
 
     function copyStaffReport() {
-      var text = document.getElementById('staffReportBox').value;
-      if (!text) { showToast('Нет данных для копирования!', true); return; }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(() => showToast('📋 Сводка скопирована в буфер обмена!'));
-      } else {
-        prompt('Скопируйте текст (Ctrl+C):', text);
-      }
+      var t = document.getElementById('staffReportBox').value;
+      if (!t) return;
+      navigator.clipboard.writeText(t).then(() => showToast("📋 Сводка скопирована!"));
+    }
+
+    // ==========================================
+    // ЛОГИКА 1: КИЗЫ, КАМЕРЫ, КАЛЬКУЛЯТОР
+    // ==========================================
+    var ALL_CONSTRUCTORS_DATA = [];
+    function setSingleKizTable(num, btn) {
+      document.getElementById("selectedKizTable").value = num;
+      document.querySelectorAll("#kizTableButtons .btn-toggle").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    }
+    function resetKizTableSelection() {
+      document.getElementById("selectedKizTable").value = "";
+      document.querySelectorAll("#kizTableButtons .btn-toggle").forEach(b => b.classList.remove("active"));
+    }
+    function forceClearKizField() {
+      document.getElementById("kizCodes").value = "";
+      document.getElementById("kizLink").value = "";
+      resetKizTableSelection();
+    }
+    function updateConstructorsDropdown(list) {
+      var s = document.getElementById("kizConstructor");
+      s.innerHTML = "<option value=''>-- Выберите из списка --</option>";
+      (list || []).forEach(c => { var o = document.createElement("option"); o.value = c; o.textContent = c; s.appendChild(o); });
+    }
+    function onKizSearchInput(q) {
+      q = (q || "").toLowerCase().trim();
+      var s = document.getElementById("kizConstructor");
+      s.innerHTML = "<option value=''>-- Выберите из списка --</option>";
+      ALL_CONSTRUCTORS_DATA.filter(i => !q || i.name.toLowerCase().includes(q) || (i.barcode && i.barcode.toLowerCase().includes(q)))
+        .forEach(i => { var o = document.createElement("option"); o.value = i.name; o.textContent = i.name; s.appendChild(o); });
+    }
+    async function submitKiz() {
+      var table = document.getElementById("selectedKizTable").value;
+      var kizText = document.getElementById("kizCodes").value.trim();
+      if (!table || !kizText) { showToast("Выберите стол и вставьте КИЗы!", true); return; }
+      showToast("Сохранение КИЗов...");
+      try {
+        const res = await callApi('saveKizData', {
+          date: document.getElementById("kizDate").value, shift: document.getElementById("kizShift").value,
+          table, constructorName: document.getElementById("kizConstructor").value, link: document.getElementById("kizLink").value.trim(), kiz: kizText
+        });
+        if (res && res.success) { showToast("✓ Записано (строка " + res.row + ")"); forceClearKizField(); }
+        else showToast("Ошибка: " + res.error, true);
+      } catch (e) { showToast("Ошибка: " + e.message, true); }
+    }
+
+    var timerRunning = false, timerStartTime = null, timerIntervalId = null, selectedCamTables = new Set();
+    function startTimer() {
+      if (timerRunning) return;
+      timerRunning = true; timerStartTime = new Date();
+      var f = n => n < 10 ? '0' + n : n;
+      document.getElementById("camStartTime").value = f(timerStartTime.getHours()) + ":" + f(timerStartTime.getMinutes()) + ":" + f(timerStartTime.getSeconds());
+      timerIntervalId = setInterval(() => {
+        var s = Math.floor((new Date() - timerStartTime) / 1000);
+        document.getElementById("timerDisplay").textContent = f(Math.floor(s/3600)) + ":" + f(Math.floor((s%3600)/60)) + ":" + f(s%60);
+      }, 1000);
+    }
+    function stopTimer() {
+      if (!timerRunning) return;
+      timerRunning = false; clearInterval(timerIntervalId);
+      var end = new Date(); var f = n => n < 10 ? '0' + n : n;
+      document.getElementById("camEndTime").value = f(end.getHours()) + ":" + f(end.getMinutes()) + ":" + f(end.getSeconds());
+      var s = Math.floor((end - timerStartTime) / 1000);
+      var dur = f(Math.floor(s/3600)) + ":" + f(Math.floor((s%3600)/60)) + ":" + f(s%60);
+      document.getElementById("camDuration").value = dur;
+      document.getElementById("timerDisplay").textContent = dur;
+    }
+    function toggleCamTable(n, b) {
+      if (selectedCamTables.has(n)) { selectedCamTables.delete(n); b.classList.remove("active"); }
+      else { selectedCamTables.add(n); b.classList.add("active"); }
+    }
+    async function onDateChanged() {
+      var d = document.getElementById("camDate").value;
+      if (!d) return;
+      try {
+        const res = await callApi('getTodayTotalInspectionTime&date=' + d);
+        if (res) document.getElementById("accumulatedTimeValue").textContent = res.total;
+      } catch (e) {}
+    }
+    async function submitCamera() {
+      var tables = Array.from(selectedCamTables).sort((a,b) => a - b).join(",");
+      if (!tables) { showToast("Выберите стол!", true); return; }
+      showToast("Сохранение отсмотра...");
+      try {
+        const res = await callApi('saveCameraData', {
+          date: document.getElementById("camDate").value, startTime: document.getElementById("camStartTime").value,
+          endTime: document.getElementById("camEndTime").value, duration: document.getElementById("camDuration").value,
+          tables, camera: "Боковая", whatChecked: "в реал времени", result: "нарушений нет",
+          cameraInterval: document.getElementById("camInterval").value, comments: document.getElementById("camComments").value
+        });
+        if (res && res.success) {
+          showToast("✓ Отсмотр сохранен!");
+          if (timerRunning) stopTimer();
+          onDateChanged();
+        } else showToast("Ошибка: " + res.error, true);
+      } catch (e) { showToast("Ошибка: " + e.message, true); }
+    }
+
+    function searchCatalogConstructor(q) {
+      q = (q || '').toLowerCase().trim();
+      var box = document.getElementById("calcSearchResult");
+      if (!q) { box.innerHTML = ""; return; }
+      var m = ALL_CONSTRUCTORS_DATA.filter(i => i.name.toLowerCase().includes(q) || (i.barcode && i.barcode.toLowerCase().includes(q)));
+      box.innerHTML = m.length ? m.slice(0, 4).map(i => `<div style="font-size:12px; padding:4px 0; border-bottom:1px solid #eee;"><b>${i.name}</b> (${i.barcode}) — Коэф: <b>${i.coefTotal}</b></div>`).join("") : "Ничего не найдено";
+    }
+    function recalculateComplexity() {
+      var base = parseFloat(document.getElementById("newBoxSize").value) || 1.5;
+      var v = parseFloat(document.getElementById("newBoxValves").value) || 0;
+      var vpp = parseFloat(document.getElementById("newBoxVpp").value) || 0;
+      var p = parseInt(document.getElementById("newPacketsCount").value, 10) || 0;
+      var m = parseInt(document.getElementById("newManualsCount").value, 10) || 0;
+      var box = Math.round((base + v + vpp) * 10) / 10;
+      var total = Math.round((box + (p + m) * 0.1) * 10) / 10;
+      document.getElementById("resTotalCoef").textContent = total.toFixed(1);
+      return { box, total, inc: p + m };
+    }
+    async function submitNewConstructor() {
+      var calc = recalculateComplexity();
+      showToast("Добавление конструктора...");
+      try {
+        const res = await callApi('saveNewConstructorToCatalog', {
+          name: document.getElementById("newConstrName").value.trim(),
+          barcode: document.getElementById("newConstrBarcode").value.trim(),
+          boxesInBox: document.getElementById("newConstrBoxesInBox").value,
+          coefBox: calc.box, inclusionsCount: calc.inc, coefTotal: calc.total
+        });
+        if (res && res.success) { showToast("✓ Конструктор добавлен!"); ALL_CONSTRUCTORS_DATA.push(res.item); }
+        else showToast("Ошибка: " + res.error, true);
+      } catch (e) { showToast("Ошибка: " + e.message, true); }
     }
 
     function escapeHtml(text) {
-      if (!text) return '';
-      return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return String(text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
-    // Инициализация при запуске
     window.onload = async function() {
+      checkAuthOnStart();
       try {
-        const data = await callApi('getInitialData');
-        if (data && data.defaultDate) {
-          document.getElementById("kizDate").value = data.defaultDate;
-          document.getElementById("camDate").value = data.defaultDate;
+        const d = await callApi('getInitialData');
+        if (d) {
+          if (d.defaultDate) { document.getElementById("kizDate").value = d.defaultDate; document.getElementById("camDate").value = d.defaultDate; }
+          if (d.defaultShift) document.getElementById("kizShift").value = d.defaultShift;
+          if (d.todayTotalTime) document.getElementById("accumulatedTimeValue").textContent = d.todayTotalTime;
+          if (d.constructorsDetailed) ALL_CONSTRUCTORS_DATA = d.constructorsDetailed;
+          if (d.constructors) updateConstructorsDropdown(d.constructors);
+          recalculateComplexity();
         }
-        if (data && data.defaultShift) document.getElementById("kizShift").value = data.defaultShift;
-        if (data && data.todayTotalTime) document.getElementById("accumulatedTimeValue").textContent = data.todayTotalTime;
-        if (data && data.constructorsDetailed) ALL_CONSTRUCTORS_DATA = data.constructorsDetailed;
-        if (data && data.constructors) updateConstructorsDropdown(data.constructors);
-        if (data && data.lastTableIntervals) serverLastIntervals = data.lastTableIntervals;
-        recalculateComplexity();
-      } catch (err) {
-        showToast("Ошибка связи: " + err.message, true);
-      }
+      } catch (e) {}
     };
   </script>
 </body>
