@@ -255,9 +255,43 @@
             <button type="button" class="btn-toggle" onclick="toggleCamTable(12, this)">12</button>
             <button type="button" class="btn-toggle" onclick="toggleCamTable(13, this)">13</button>
             <button type="button" class="btn-toggle" onclick="setSingleKizTable(14, this)">14</button>
+                  <!-- НОВЫЕ ПОЛЯ -->
+        <!-- Камера (Колонка H) / Результат (Колонка F) -->
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label>Камера:</label>
+            <div class="table-buttons-grid" id="camTypeButtons">
+              <button type="button" class="btn btn-outline-primary w-100 mb-1 cam-type-btn active" data-value="Боковая">Боковая</button>
+              <button type="button" class="btn btn-outline-primary w-100 cam-type-btn" data-value="Над столом">Над столом</button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label>Результат:</label>
+            <div class="table-buttons-grid" id="camResultButtons">
+              <button type="button" class="btn btn-success w-100 mb-1 cam-result-btn active" data-value="нарушений нет">Нарушений нет</button>
+              <button type="button" class="btn btn-warning w-100 mb-1 cam-result-btn" data-value="замечание">Замечание</button>
+              <button type="button" class="btn btn-info w-100 mb-1 cam-result-btn" data-value="запрос проверки">Запрос проверки</button>
+              <button type="button" class="btn btn-danger w-100 cam-result-btn" data-value="ошибки">Ошибки</button>
+            </div>
           </div>
         </div>
-        <div class="form-group"><label>Интервал по камере:</label><input type="text" id="camInterval" placeholder="Напр. 10:16-10:37"></div>
+
+        <!-- Интервал по камере (старый input, теперь колонка G) -->
+        <div class="form-group col-md-4">
+          <label>Интервал по камере:</label>
+          <input type="text" id="camInterval" placeholder="Напр. 10:16-10:37">
+        </div>
+
+        <!-- Что в отсмотре (Колонка J) -->
+        <div class="form-group col-md-8">
+          <label>Что в отсмотре:</label>
+          <select id="camWhatChecked" class="form-control">
+            <option value="в реал времени">В реальном времени</option>
+            <option value="инструкции">Инструкции</option>
+            <option value="весь цикл">Весь цикл</option>
+            <option value="детали">Детали</option>
+          </select>
+        </div>
         <div class="form-group"><label>Комментарии:</label><textarea id="camComments" rows="2"></textarea></div>
         <div style="display:flex; gap:10px;">
           <button type="button" class="btn btn-secondary" onclick="stopTimer()" style="flex:1;">⏹ Стоп</button>
@@ -1487,23 +1521,45 @@
       } catch (e) {}
     }
     async function submitCamera() {
-      var tables = Array.from(selectedCamTables).sort((a,b) => a - b).join(",");
-      if (!tables) { showToast("Выберите стол!", true); return; }
-      showToast("Сохранение отсмотра...");
-      try {
-        const res = await callApi('saveCameraData', {
-          date: document.getElementById("camDate").value, startTime: document.getElementById("camStartTime").value,
-          endTime: document.getElementById("camEndTime").value, duration: document.getElementById("camDuration").value,
-          tables, camera: "Боковая", whatChecked: "в реал времени", result: "нарушений нет",
-          cameraInterval: document.getElementById("camInterval").value, comments: document.getElementById("camComments").value
-        });
-        if (res && res.success) {
-          showToast("✓ Отсмотр сохранен!");
-          if (timerRunning) stopTimer();
-          onDateChanged();
-        } else showToast("Ошибка: " + res.error, true);
-      } catch (e) { showToast("Ошибка: " + e.message, true); }
+  var tables = Array.from(selectedCamTables).sort((a,b) => a - b).join(",");
+  if (!tables) { showToast("Выберите стол!", true); return; }
+  
+  // Проверка новых кнопок
+  const camTypeBtn = document.querySelector('#camTypeButtons .active');
+  const resultBtn = document.querySelector('#camResultButtons .active');
+  if (!camTypeBtn || !resultBtn) {
+    showToast('Пожалуйста, выберите тип камеры и результат осмотра.', true);
+    return;
+  }
+
+  showToast("Сохранение отсмотра...");
+  try {
+    const payload = await callApi('saveCameraData', {
+      date: document.getElementById("camDate").value,
+      startTime: document.getElementById("camStartTime").value,
+      endTime: document.getElementById("camEndTime").value,
+      duration: document.getElementByID("camDuration").value,
+      tables,
+      
+      // Новые поля из интерфейса
+      camera: camTypeBtn.dataset.value,          // Колонка H в таблице
+      interval: document.getElementById("camInterval").value, // Колонка G
+      whatChecked: document.getElementById("camWhatChecked").value, // Колонка J
+      result: resultBtn.dataset.value,           // Колонка F
+      comments: document.getElementById("camComments").value
+    });
+    
+    if (payload && payload.success) {
+      showToast("✓ Отсмотр сохранен!");
+      if (timerRunning) stopTimer();
+      onDateChanged(); // Обновляет накопленное время за дату
+    } else {
+      showToast("Ошибка: " + payload.error, true);
     }
+  } catch (e) {
+    showToast("Ошибка: " + e.message, true);
+  }
+}
 
     function searchCatalogConstructor(q) {
       q = (q || '').toLowerCase().trim();
@@ -1552,10 +1608,26 @@
           if (d.todayTotalTime) document.getElementById("accumulatedTimeValue").textContent = d.todayTotalTime;
           if (d.constructorsDetailed) ALL_CONSTRUCTORS_DATA = d.constructorsDetailed;
           if (d.constructors) updateConstructorsDropdown(d.constructors);
-          recalculateComplexity();
-        }
-      } catch (e) {}
-    };
-  </script>
+recalculateComplexity();
+} catch (e) {}
+};
+
+
+// Слушатели для новых кнопок
+document.querySelectorAll('#camTypeButtons .cam-type-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    this.parentNode.querySelectorAll('.cam-type-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+document.querySelectorAll('#camResultButtons .cam-result-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    this.parentNode.querySelectorAll('.cam-result-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+</script>
 </body>
 </html>
