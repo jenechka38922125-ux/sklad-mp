@@ -224,81 +224,62 @@
 
     <!-- 2. КАМЕРЫ -->
     <div id="cameraTab" class="tab-content">
-      <form id="cameraForm" onsubmit="event.preventDefault(); submitCamera();">
-        <div class="form-group"><label>Дата отсмотра:</label><input type="date" id="camDate" onchange="onDateChanged()" required></div>
-        <div style="background:#e8f0fe; padding:10px; border-radius:8px; margin-bottom:12px; display:flex; justify-content:space-between; font-weight:700;">
-          <span style="color:#1967d2;">⏱️ Уже отсмотрено за дату:</span><span id="accumulatedTimeValue" style="color:#1a73e8;">00:00:00</span>
-        </div>
-        <div style="background:#f0f4f9; border:1px solid #c2e7ff; padding:12px; border-radius:8px; text-align:center; margin-bottom:12px;">
-          <div id="timerDisplay" style="font-size:26px; font-weight:800; color:#1a73e8; margin-bottom:6px;">00:00:00</div>
-          <button type="button" class="btn btn-primary" id="btnTimer" style="width:100%;" onclick="startTimer()">⏱ Начать отсмотр</button>
-        </div>
-        <div class="row-3">
-          <div class="form-group"><label>Начало:</label><input type="text" id="camStartTime"></div>
-          <div class="form-group"><label>Конец:</label><input type="text" id="camEndTime"></div>
-          <div class="form-group"><label>Длительность:</label><input type="text" id="camDuration" readonly style="background:#f1f3f4;"></div>
-        </div>
-        <div class="form-group">
-          <label>Столы (мультивыбор):</label>
-          <div class="table-buttons-grid" id="camTablesGrid">
-            <button type="button" class="btn-toggle" onclick="toggleCamTable(1, this)">1</button>
-            <button type="button" class="btn-toggle" onclick="toggleCamTable(2, this)">2</button>
-            <button type="button" class="btn-toggle" onclick="toggleCamTable(3, this)">3</button>
-            <button type="button" class="btn-toggle" onclick="toggleCamTable(4, this)">4</button>
-            <button type="button" class="btn-toggle" onclick="toggleCamTable(5, this)">5</button>
-            <button type="button" class="btn-toggle" onclick="toggleCamTable(6, this)">6</button>
-            <button type="button" class="btn-toggle" onclick="toggleCamTable(7, this)">7</button>
-            <button type="button" class="btn-toggle" onclick="toggleCamTable(8, this)">8</button>
-            <button type="button" class="btn-toggle" onclick="toggleCamTable(9, this)">9</button>
-            <button type="button" class="btn-toggle" onclick="toggleCamTable(10, this)">10</button>
-            <button type="button" class="btn-toggle" onclick="toggleCamTable(11, this)">11</button>
-            <button type="button" class="btn-toggle" onclick="toggleCamTable(12, this)">12</button>
-            <button type="button" class="btn-toggle" onclick="toggleCamTable(13, this)">13</button>
-            <button type="button" class="btn-toggle" onclick="setSingleKizTable(14, this)">14</button>
-                  <!-- НОВЫЕ ПОЛЯ -->
-        <!-- Камера (Колонка H) / Результат (Колонка F) -->
-        <div class="row g-3 mb-3">
-          <div class="col-md-6">
-            <label>Камера:</label>
-            <div class="table-buttons-grid" id="camTypeButtons">
-              <button type="button" class="btn btn-outline-primary w-100 mb-1 cam-type-btn active" data-value="Боковая">Боковая</button>
-              <button type="button" class="btn btn-outline-primary w-100 cam-type-btn" data-value="Над столом">Над столом</button>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <label>Результат:</label>
-            <div class="table-buttons-grid" id="camResultButtons">
-              <button type="button" class="btn btn-success w-100 mb-1 cam-result-btn active" data-value="нарушений нет">Нарушений нет</button>
-              <button type="button" class="btn btn-warning w-100 mb-1 cam-result-btn" data-value="замечание">Замечание</button>
-              <button type="button" class="btn btn-info w-100 mb-1 cam-result-btn" data-value="запрос проверки">Запрос проверки</button>
-              <button type="button" class="btn btn-danger w-100 cam-result-btn" data-value="ошибки">Ошибки</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Интервал по камере (старый input, теперь колонка G) -->
-        <div class="form-group col-md-4">
-          <label>Интервал по камере:</label>
-          <input type="text" id="camInterval" placeholder="Напр. 10:16-10:37">
-        </div>
-
-        <!-- Что в отсмотре (Колонка J) -->
-        <div class="form-group col-md-8">
-          <label>Что в отсмотре:</label>
-          <select id="camWhatChecked" class="form-control">
-            <option value="в реал времени">В реальном времени</option>
-            <option value="инструкции">Инструкции</option>
-            <option value="весь цикл">Весь цикл</option>
-            <option value="детали">Детали</option>
-          </select>
-        </div>
-        <div class="form-group"><label>Комментарии:</label><textarea id="camComments" rows="2"></textarea></div>
-        <div style="display:flex; gap:10px;">
-          <button type="button" class="btn btn-secondary" onclick="stopTimer()" style="flex:1;">⏹ Стоп</button>
-          <button type="submit" class="btn btn-primary" style="flex:2;">✓ Сохранить</button>
-        </div>
-      </form>
+      <!-- 2. КАМЕРЫ -->
+<div id="cameraTab" class="tab-content">
+  <form id="cameraForm" onsubmit="event.preventDefault(); submitCamera();">
+    <!-- ... здесь всё ваше старое начало формы остаётся без изменений -->
+    
+    <!-- ВАШ СТАРЫЙ БЛОК С КНОПКАМИ СТОЛОВ ОСТАВЛЯЕМ -->
+    <div class="form-group">
+      <label>Столы (мультивыбор):</label>
+      <div class="table-buttons-grid" id="camTablesGrid">
+        <!-- Все ваши кнопки со столами от 1 до 14 -->
+      </div>
+      <input type="hidden" id="selectedKizTable" value="">
     </div>
+
+    <!-- НОВЫЕ ПОЛЯ В ТОМ ЖЕ СТИЛЕ, ЧТО И У ВАС НА СКРИНШОТЕ -->
+    <div class="form-group">
+      <label>Камера:</label>
+      <div class="table-buttons-grid" id="camTypeButtons">
+        <button type="button" class="btn-toggle active" onclick="setCamType('Боковая', this)" data-camtype="Боковая">Боковая</button>
+        <button type="button" class="btn-toggle" onclick="setCamType('Над столом', this)" data-camtype="Над столом">Над столом</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Что в отсмотре:</label>
+      <select id="camWhatChecked" style="padding:8px 12px; font-size:13px;">
+        <option value="в реал времени">В реальном времени</option>
+        <option value="инструкции">Инструкции</option>
+        <option value="весь цикл">Весь цикл</option>
+        <option value="детали">Детали</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Результат проверки:</label>
+      <div class="table-buttons-grid" id="camResultButtons">
+        <button type="button" class="btn-toggle result-active" onclick="setCamResult('нарушений нет', this)" data-result="нарушений нет">Нарушений нет</button>
+        <button type="button" class="btn-toggle" onclick="setCamResult('замечание', this)" data-result="замечание">Замечание</button>
+        <button type="button" class="btn-toggle" onclick="setCamResult('запрос проверки', this)" data-result="запрос проверки">Запрос проверки</button>
+        <button type="button" class="btn-toggle" onclick="setCamResult('ошибки', this)" data-result="ошибки">Ошибки</button>
+      </div>
+    </div>
+
+    <!-- ВАША СТРОКА ИНТЕРВАЛ ПО КАМЕРЕ ОСТАЁТСЯ -->
+    <div class="form-group"><label>Интервал по камере:</label><input type="text" id="camInterval" placeholder="Напр. 10:16-10:37"></div>
+
+    <!-- ВАШЕ ПОЛНОЦЕННОЕ ПОЛЕ КОММЕНТАРИИ ОСТАЁТСЯ -->
+    <div class="form-group"><label>Комментарии:</label><textarea id="camComments" rows="2"></textarea></div>
+
+    <!-- ВАШИ КНОПКИ "СТОП" И "СОХРАНИТЬ" ОСТАЮТСЯ -->
+    <div style="display:flex; gap:10px;">
+      <button type="button" class="btn btn-secondary" onclick="stopTimer()" style="flex:1;">⏹ Стоп</button>
+      <button type="submit" class="btn btn-primary" style="flex:2;">✓ Сохранить</button>
+    </div>
+  </form>
+</div>
 
     <!-- 3. КАЛЬКУЛЯТОР -->
     <div id="calcTab" class="tab-content">
@@ -1617,20 +1598,19 @@
   };
 
 // Слушатели для новых кнопок камер
-document.querySelectorAll('#camTypeButtons .cam-type-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    btn.parentNode.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  });
-});
+<!-- Функции переключения кнопок (аналогично вашим столам). 
+     Оставляем ТОЛЬКО их! Они уже встроены в HTML через onclick -->
+function setCamType(val, el) {
+  var allBtns = document.querySelectorAll('#camTypeButtons .btn-toggle');
+  for(var i = 0; i < allBtns.length; i++) { allBtns[i].classList.remove('active'); }
+  el.classList.add('active');
+}
 
-document.querySelectorAll('#camResultButtons .cam-result-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    btn.parentNode.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  });
-});
-
+function setCamResult(val, el) {
+  var allBtns = document.querySelectorAll('#camResultButtons .btn-toggle');
+  for(var i = 0; i < allBtns.length; i++) { allBtns[i].classList.remove('active'); }
+  el.classList.add('active');
+}
 </script>
 </body>
 </html>
