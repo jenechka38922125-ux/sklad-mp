@@ -116,7 +116,7 @@
 </head>
 <body>
 
-  <!-- Универсальный баннер установки PWA (виден всегда вверху экрана) -->
+  <!-- Универсальный баннер установки PWA -->
   <div class="pwa-top-bar" id="pwaTopBar">
     <span>📲 Приложение E-COM ПФЦ</span>
     <button type="button" class="btn-install-pwa" id="pwaGlobalInstallBtn" onclick="triggerPwaInstall()">Установить</button>
@@ -349,7 +349,7 @@
         <div class="form-group">
           <label>ФИО сотрудника:</label>
           <div style="display:flex; gap:8px;">
-            <input type="text" id="regFio" placeholder="Фамилия Имя Отчество" oninput="resetCandidateVerification()" required>
+            <input type="text" id="regFio" placeholder="Фамилия Имя Отчество" onblur="verifyFioOnBlur()" oninput="resetCandidateVerification()" required>
             <button type="button" class="btn btn-blue" id="btnVerifyFio" style="white-space:nowrap; padding:8px 14px;" onclick="verifyFioClick()">🔍 Проверить</button>
           </div>
           <div id="fioAlert" class="status-alert"></div>
@@ -438,7 +438,7 @@
     </div>
   </div>
 
-  <!-- Модальное окно: Проверка и подтверждение кандидата -->
+  <!-- Модальное окно: Проверка кандидата (Fuzzy Match / Новый) -->
   <div id="verifyCandidateModal" class="modal-overlay">
     <div class="modal">
       <div class="modal-header" id="verifyCandidateHeader">⚠️ Проверка сотрудника</div>
@@ -532,7 +532,7 @@
       <div class="modal-header">🔄 Перевод на другую вакансию</div>
       <div class="modal-body">
         <div>Сотрудник: <b id="moveModalFio" style="color:var(--primary);"></b></div>
-        <div style="margin:4px 0 10px;">Текущая: <b id="moveModalCurrentVac"></b></div>
+        <div style="margin-4px 0 10px;">Текущая: <b id="moveModalCurrentVac"></b></div>
         <div class="form-group">
           <label>Новая вакансия:</label>
           <select id="moveModalSelect"></select>
@@ -655,18 +655,17 @@
         }
         deferredPrompt = null;
       } else {
-        // Если браузер уже подавил prompt или это Safari/Яндекс
         const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
         if (isIos) {
-          alert('Чтобы установить приложение на iPhone:\n1. Нажмите внизу значок «Поделиться» (квадрат со стрелкой вверх)\n2. Выберите пункт «На экран "Домой"»');
+          alert('Чтобы установить на iPhone:\n1. Нажмите кнопку «Поделиться» (квадрат со стрелкой вверх внизу)\n2. Выберите «На экран "Домой"»');
         } else {
-          alert('Чтобы установить приложение:\n1. Нажмите три точки в углу браузера (Chrome / Яндекс)\n2. Выберите «Установить приложение» или «Добавить на главный экран»');
+          alert('Чтобы установить приложение:\n1. Нажмите три точки в правом верхнем углу браузера\n2. Выберите «Установить приложение» или «Добавить на главный экран»');
         }
       }
     }
 
     window.addEventListener('appinstalled', () => {
-      showToast('✓ Приложение успешно установлено на устройство!');
+      showToast('✓ Приложение успешно установлено!');
     });
 
     if ('serviceWorker' in navigator) {
@@ -936,24 +935,34 @@
       document.getElementById("fioAlert").style.display = "none";
     }
 
+    async function verifyFioOnBlur() {
+      var fio = document.getElementById("regFio").value.trim();
+      if (!fio || isFioVerified) return;
+      await runEmployeeVerification(fio, false);
+    }
+
     async function verifyFioClick() {
       var fio = document.getElementById("regFio").value.trim();
-      var alertBox = document.getElementById("fioAlert");
       if (!fio) {
         showToast("Введите ФИО для проверки!", true);
         document.getElementById("regFio").focus();
         return;
       }
+      await runEmployeeVerification(fio, true);
+    }
+
+    async function runEmployeeVerification(fio, isManualClick) {
       var btn = document.getElementById("btnVerifyFio");
-      btn.disabled = true; btn.textContent = "⏳ Проверка...";
-      
+      btn.disabled = true; btn.textContent = "⏳...";
+      var alertBox = document.getElementById("fioAlert");
+
       try {
         const res = await callApi('verifyEmployeeWithSpravochnik', { fio });
         btn.disabled = false; btn.textContent = "🔍 Проверить";
         if (res) {
           pendingVerification = res;
           alertBox.style.display = "block";
-          
+
           if (res.status === 'exact') {
             isFioVerified = true;
             alertBox.className = "status-alert alert-success";
@@ -961,14 +970,14 @@
             if (res.phone && !document.getElementById("regPhone").value) {
               document.getElementById("regPhone").value = res.phone;
             }
-            showToast("✓ Сотрудник успешно найден в справочнике!");
+            if (isManualClick) showToast("✓ Сотрудник найден в справочнике!");
           } else if (res.status === 'fuzzy') {
             document.getElementById("verifyCandidateHeader").textContent = "⚠️ Найдено совпадение в справочнике";
             document.getElementById("verifyCandidateBody").innerHTML = `
-              Введено пользователем: <b>${escapeHtml(fio)}</b><br><br>
-              В справочнике найдено: <b style="color:var(--primary); font-size:15px;">${escapeHtml(res.matchedName)}</b><br>
+              Введено: <b>${escapeHtml(fio)}</b><br><br>
+              Найдено в справочнике: <b style="color:var(--primary); font-size:15px;">${escapeHtml(res.matchedName)}</b><br>
               Телефон в базе: <b>${escapeHtml(res.phone || 'не указан')}</b><br><br>
-              Применить данные из справочника?
+              Применить имя и телефон из справочника?
             `;
             document.getElementById("verifyCandidateActions").innerHTML = `
               <button type="button" class="btn btn-secondary" onclick="rejectCandidateMatch()">Оставить как ввёл</button>
@@ -979,8 +988,8 @@
             document.getElementById("verifyCandidateHeader").textContent = "👤 Новый сотрудник";
             document.getElementById("verifyCandidateBody").innerHTML = `
               Сотрудник: <b>${escapeHtml(fio)}</b><br><br>
-              Отсутствует в «Справочнике сотрудников» и «Списке сотрудников».<br><br>
-              При записи он будет <b>автоматически добавлен</b> в справочник сотрудников как новый.
+              Отсутствует в справочниках сотрудников.<br><br>
+              При записи он будет <b>автоматически добавлен</b> в «Справочник сотрудников».
             `;
             document.getElementById("verifyCandidateActions").innerHTML = `
               <button type="button" class="btn btn-secondary" onclick="closeModal('verifyCandidateModal')">Отмена</button>
@@ -991,7 +1000,7 @@
         }
       } catch (e) {
         btn.disabled = false; btn.textContent = "🔍 Проверить";
-        showToast("Ошибка проверки: " + e.message, true);
+        if (isManualClick) showToast("Ошибка проверки: " + e.message, true);
       }
       checkCandidateDetails();
     }
@@ -1015,7 +1024,7 @@
       var alertBox = document.getElementById("fioAlert");
       alertBox.style.display = "block";
       alertBox.className = "status-alert alert-warning";
-      alertBox.textContent = `⚠️ Будет записан в исходном виде: ${document.getElementById("regFio").value}`;
+      alertBox.textContent = `⚠️ Будет записан как введено: ${document.getElementById("regFio").value}`;
       closeModal("verifyCandidateModal");
       checkCandidateDetails();
     }
@@ -1060,9 +1069,6 @@
       if (!fio) { showToast("Укажите ФИО!", true); return; }
 
       if (!isFioVerified) {
-        if (!confirm("Сотрудник ещё не проверен по справочнику. Нажмите 'ОК', чтобы запустить быструю проверку перед записью.")) {
-          return;
-        }
         await verifyFioClick();
         if (!isFioVerified) return;
       }
@@ -1160,7 +1166,7 @@
         currentShiftListRows = rows || [];
         renderShiftListTable(currentShiftListRows);
       } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:color:red; padding:18px;">Ошибка: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:red; padding:18px;">Ошибка: ${e.message}</td></tr>`;
       }
     }
 
