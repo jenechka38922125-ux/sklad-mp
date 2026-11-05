@@ -4,7 +4,7 @@
   "description": "Учёт склада и система управления сменами E-COM ПФЦ",
   "id": "/sklad-mp/",
   "start_url": "/sklad-mp/index.html",
-  "scope": "/sklad-mp/",
+  "scope": "/",
   "display": "fullscreen",
   "display_override": [
     "fullscreen",
