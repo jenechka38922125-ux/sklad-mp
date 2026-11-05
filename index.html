@@ -1594,12 +1594,11 @@
         if (d.constructors) updateConstructorsDropdown(d.constructors);
         recalculateComplexity();
       }
-    } catch (e) {}
-  };
+      } catch (e) {}
+};
 
-// Слушатели для новых кнопок камер
-<!-- Функции переключения кнопок (аналогично вашим столам). 
-     Оставляем ТОЛЬКО их! Они уже встроены в HTML через onclick -->
+// Функции переключения кнопок камер и результата (аналогично вашим столам).
+// Оставляем ТОЛЬКО их! Они уже встроены в HTML через onclick
 function setCamType(val, el) {
   var allBtns = document.querySelectorAll('#camTypeButtons .btn-toggle');
   for(var i = 0; i < allBtns.length; i++) { allBtns[i].classList.remove('active'); }
