@@ -1,1 +1,889 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Склад МП</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  
+  <!-- PWA настройки -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a73e8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Склад МП">
+  <link rel="apple-touch-icon" href="icon.png">
 
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --primary-hover: #1557b0;
+      --success: #28a745;
+      --success-hover: #218838;
+      --danger: #dc3545;
+      --danger-hover: #c82333;
+      --warning: #f2994a;
+      --bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --text: #202124;
+      --text-muted: #5f6368;
+      --border: #dadce0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 12px; display: flex; justify-content: center; }
+    .container { width: 100%; max-width: 680px; background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 30px; }
+    .nav-tabs { display: flex; background: #e8eaed; border-bottom: 2px solid var(--border); }
+    .nav-tab { flex: 1; text-align: center; padding: 13px 8px; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--text-muted); border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap; }
+    .nav-tab.active { background: var(--card-bg); color: var(--primary); border-bottom-color: var(--primary); }
+    .tab-content { display: none; padding: 18px; }
+    .tab-content.active { display: block; }
+    .form-group { margin-bottom: 14px; }
+    label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #3c4043; }
+    input[type="text"], input[type="number"], input[type="date"], input[type="time"], select, textarea {
+      width: 100%; padding: 10px 12px; font-size: 14px; border: 1px solid var(--border); border-radius: 6px; outline: none; background-color: #fff;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary); box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+    }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .table-buttons-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 4px; }
+    .btn-toggle {
+      padding: 9px 0; font-size: 14px; font-weight: 700; border: 1px solid var(--border); background-color: #f8f9fa; color: #333;
+      border-radius: 6px; cursor: pointer; text-align: center; transition: all 0.15s ease; user-select: none;
+    }
+    .btn-toggle:hover { background-color: #e2e6ea; }
+    .btn-toggle.active {
+      background-color: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 2px 6px rgba(26, 115, 232, 0.4); transform: scale(1.02);
+    }
+    .btn-group-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-group-row .btn-toggle { flex: 1; padding: 10px 8px; min-width: 110px; font-size: 13px; }
+    .accumulated-time-banner {
+      background: #e8f0fe; border: 1px solid #aecbfa; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .accumulated-time-label { font-size: 13px; font-weight: 600; color: #1967d2; }
+    .accumulated-time-value { font-size: 17px; font-weight: 700; color: #1a73e8; font-variant-numeric: tabular-nums; }
+    .timer-card { background: #f0f4f9; border: 1px solid #c2e7ff; border-radius: 8px; padding: 12px; margin-bottom: 14px; text-align: center; }
+    .timer-display { font-size: 26px; font-weight: 700; color: #1a73e8; letter-spacing: 1px; margin: 4px 0 8px 0; }
+    .btn-timer { padding: 10px 18px; font-size: 14px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s; width: 100%; }
+    .btn-timer.start { background-color: var(--success); color: white; }
+    .btn-timer.start:hover { background-color: var(--success-hover); }
+    .btn-timer.stop { background-color: var(--danger); color: white; padding: 12px 18px; font-size: 15px; }
+    .btn-timer.stop:hover { background-color: var(--danger-hover); }
+    .hint-box { font-size: 12px; background: #fff8e1; border-left: 4px solid #ffb300; padding: 8px 10px; margin-top: 6px; border-radius: 4px; color: #6d4c41; line-height: 1.4; }
+    .actions-row { display: flex; gap: 10px; margin-top: 10px; }
+    .btn { padding: 12px 16px; font-size: 15px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background-color: var(--success); color: white; flex: 3; }
+    .btn-primary:hover { background-color: var(--success-hover); }
+    .btn-secondary { background-color: var(--danger); color: white; flex: 1.2; }
+    .btn-secondary:hover { background-color: var(--danger-hover); }
+    .btn-small-refresh { padding: 4px 10px; font-size: 11px; font-weight: 600; background: #edf2f7; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; transition: 0.15s; }
+    .btn-small-refresh:hover { background: #e2e8f0; }
+    
+    .calc-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+    .calc-sec-title { font-size: 14px; font-weight: 700; color: #2d3748; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .calc-res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+    .res-box { background: #fff; border: 1px solid #cbd5e0; border-radius: 8px; padding: 10px; text-align: center; }
+    .res-box.main { background: #ebf8ff; border-color: #90cdf4; grid-column: span 2; }
+    .res-lbl { font-size: 11px; font-weight: 700; color: #718096; text-transform: uppercase; margin-bottom: 4px; }
+    .res-val { font-size: 20px; font-weight: 800; color: #2b6cb0; }
+    .search-result-card { background: #ffffff; border: 1px solid #bee3f8; border-radius: 8px; padding: 12px; margin-top: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+
+    #toast {
+      visibility: hidden; min-width: 280px; max-width: 90%; background-color: #323232; color: #fff; text-align: center; border-radius: 8px;
+      padding: 12px 18px; position: fixed; z-index: 1000; bottom: 24px; left: 50%; transform: translateX(-50%); font-size: 14px;
+    }
+    #toast.show { visibility: visible; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav-tabs">
+      <div class="nav-tab active" onclick="switchTab('kizTab', this)">📦 Запись КИЗов</div>
+      <div class="nav-tab" onclick="switchTab('cameraTab', this)">🎥 Отсмотр камер</div>
+      <div class="nav-tab" onclick="switchTab('calcTab', this)">⚙️ Калькулятор</div>
+    </div>
+
+    <!-- 1. ВКЛАДКА КИЗОВ -->
+    <div id="kizTab" class="tab-content active">
+      <form id="kizForm" onsubmit="event.preventDefault(); submitKiz();">
+        <div class="row-2">
+          <div class="form-group">
+            <label>Дата:</label>
+            <input type="date" id="kizDate" required>
+          </div>
+          <div class="form-group">
+            <label>Смена:</label>
+            <select id="kizShift" required>
+              <option value="день">☀️ День</option>
+              <option value="ночь">🌙 Ночь</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Стол:</label>
+          <div class="table-buttons-grid" id="kizTableButtons">
+            <button type="button" class="btn-toggle" onclick="setSingleKizTable(1, this)">1</button>
+            <button type="button" class="btn-toggle" onclick="setSingleKizTable(2, this)">2</button>
+            <button type="button" class="btn-toggle" onclick="setSingleKizTable(3, this)">3</button>
+            <button type="button" class="btn-toggle" onclick="setSingleKizTable(4, this)">4</button>
+            <button type="button" class="btn-toggle" onclick="setSingleKizTable(5, this)">5</button>
+            <button type="button" class="btn-toggle" onclick="setSingleKizTable(6, this)">6</button>
+            <button type="button" class="btn-toggle" onclick="setSingleKizTable(7, this)">7</button>
+            <button type="button" class="btn-toggle" onclick="setSingleKizTable(8, this)">8</button>
+            <button type="button" class="btn-toggle" onclick="setSingleKizTable(9, this)">9</button>
+            <button type="button" class="btn-toggle" onclick="setSingleKizTable(10, this)">10</button>
+            <button type="button" class="btn-toggle" onclick="setSingleKizTable(11, this)">11</button>
+            <button type="button" class="btn-toggle" onclick="setSingleKizTable(12, this)">12</button>
+            <button type="button" class="btn-toggle" onclick="setSingleKizTable(13, this)">13</button>
+            <button type="button" class="btn-toggle" onclick="setSingleKizTable(14, this)">14</button>
+          </div>
+          <input type="hidden" id="selectedKizTable" value="">
+        </div>
+
+        <div class="form-group">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label style="margin-bottom:0;">Поиск товара (по названию или цифрам ШК):</label>
+            <button type="button" class="btn-small-refresh" onclick="refreshConstructorsList(true)">🔄 Обновить</button>
+          </div>
+          <input type="text" id="kizSearchFilter" placeholder="Начните вводить название или ШК..." oninput="onKizSearchInput(this.value)">
+        </div>
+
+        <div class="form-group">
+          <label>Выбранный конструктор / товар:</label>
+          <select id="kizConstructor" onchange="onKizSelectChanged(this.value)">
+            <option value="">-- Выберите из списка --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Ссылка:</label>
+          <input type="text" id="kizLink" placeholder="https://max.ru/...">
+        </div>
+
+        <div class="form-group">
+          <label>КИЗы:</label>
+          <textarea id="kizCodes" rows="6" placeholder="Вставьте или отсканируйте КИЗы..."></textarea>
+        </div>
+
+        <div class="actions-row">
+          <button type="submit" class="btn btn-primary" id="btnSubmitKiz">✓ Добавить запись кизов</button>
+          <button type="button" class="btn btn-secondary" onclick="forceClearKizField()">✕ Очистить</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 2. ВКЛАДКА КАМЕР -->
+    <div id="cameraTab" class="tab-content">
+      <form id="cameraForm" onsubmit="event.preventDefault(); submitCamera();">
+        <div class="form-group">
+          <label>Дата отсмотра:</label>
+          <input type="date" id="camDate" onchange="onDateChanged()" required>
+        </div>
+
+        <div class="accumulated-time-banner">
+          <span class="accumulated-time-label">⏱️ Уже отсмотрено за выбранную дату:</span>
+          <span class="accumulated-time-value" id="accumulatedTimeValue">00:00:00</span>
+        </div>
+
+        <div class="timer-card">
+          <div style="font-size: 13px; color: var(--text-muted);">Автоматический таймер отсмотра:</div>
+          <div class="timer-display" id="timerDisplay">00:00:00</div>
+          <button type="button" class="btn-timer start" id="btnTimer" onclick="startTimer()">⏱ Начать отсмотр</button>
+        </div>
+
+        <div class="row-3">
+          <div class="form-group">
+            <label>Начало:</label>
+            <input type="text" id="camStartTime" placeholder="10:15:00">
+          </div>
+          <div class="form-group">
+            <label>Конец:</label>
+            <input type="text" id="camEndTime" placeholder="10:35:00">
+          </div>
+          <div class="form-group">
+            <label>Длительность:</label>
+            <input type="text" id="camDuration" placeholder="00:20:00" readonly style="background:#f1f3f4;">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Столы (мультивыбор - нажмите нужные):</label>
+          <div class="table-buttons-grid" id="camTablesGrid">
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(1, this)">1</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(2, this)">2</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(3, this)">3</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(4, this)">4</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(5, this)">5</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(6, this)">6</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(7, this)">7</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(8, this)">8</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(9, this)">9</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(10, this)">10</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(11, this)">11</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(12, this)">12</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(13, this)">13</button>
+            <button type="button" class="btn-toggle" onclick="toggleCamTable(14, this)">14</button>
+          </div>
+          <div style="margin-top: 4px; font-size: 13px; color: #1a73e8; font-weight:600;">
+            Выбрано: <span id="camTablesSelectedLabel">не выбрано</span>
+          </div>
+        </div>
+
+        <div id="tableHintBox" class="hint-box" style="display: none;"></div>
+
+        <div class="form-group">
+          <label>Камера:</label>
+          <div class="btn-group-row">
+            <button type="button" class="btn-toggle active" id="btnCamSide" onclick="selectCamera('Боковая', this)">Боковая</button>
+            <button type="button" class="btn-toggle" id="btnCamTop" onclick="selectCamera('Над столами', this)">Над столами</button>
+          </div>
+          <input type="hidden" id="camCamera" value="Боковая">
+        </div>
+
+        <div class="form-group">
+          <label>Что в отсмотре:</label>
+          <div class="btn-group-row">
+            <button type="button" class="btn-toggle active" onclick="selectWhatChecked('в реал времени', this)">в реал времени</button>
+            <button type="button" class="btn-toggle" onclick="selectWhatChecked('инструкции', this)">инструкции</button>
+            <button type="button" class="btn-toggle" onclick="selectWhatChecked('весь цикл', this)">весь цикл</button>
+            <button type="button" class="btn-toggle" onclick="selectWhatChecked('скорость', this)">скорость</button>
+          </div>
+          <input type="hidden" id="camWhatChecked" value="в реал времени">
+        </div>
+
+        <div class="form-group">
+          <label>Результат проверки:</label>
+          <div class="btn-group-row">
+            <button type="button" class="btn-toggle active" onclick="selectResult('нарушений нет', this)">нарушений нет</button>
+            <button type="button" class="btn-toggle" onclick="selectResult('замечание', this)">замечание</button>
+            <button type="button" class="btn-toggle" onclick="selectResult('запрос проверки', this)">запрос проверки</button>
+            <button type="button" class="btn-toggle" onclick="selectResult('брак', this)">брак</button>
+          </div>
+          <input type="hidden" id="camResult" value="нарушений нет">
+        </div>
+
+        <div class="form-group">
+          <label>Интервал по камере:</label>
+          <input type="text" id="camInterval" placeholder="Напр. 10:16-10:37">
+        </div>
+
+        <div class="form-group">
+          <label>Комментарии по ошибкам:</label>
+          <textarea id="camComments" rows="2" placeholder="Укажите замечания, если есть..."></textarea>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <button type="button" class="btn-timer stop" id="btnStopTimer" onclick="stopTimer()">⏹ Остановить таймер</button>
+        </div>
+
+        <div class="actions-row">
+          <button type="submit" class="btn btn-primary" style="flex:1;">✓ Сохранить отсмотр</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 3. ВКЛАДКА КАЛЬКУЛЯТОРА И ПОИСКА КОНСТРУКТОРОВ -->
+    <div id="calcTab" class="tab-content">
+      <div class="calc-card">
+        <div class="calc-sec-title">🔍 Найти конструктор в справочнике</div>
+        <input type="text" id="calcSearchInput" placeholder="Введите название или цифры ШК..." oninput="searchCatalogConstructor(this.value)">
+        <div id="calcSearchResult" style="margin-top:6px;"></div>
+      </div>
+
+      <form id="calcNewForm" onsubmit="event.preventDefault(); submitNewConstructor();">
+        <div class="calc-card">
+          <div class="calc-sec-title">📦 1. Параметры коробки</div>
+          <div class="form-group">
+            <label>Название конструктора:</label>
+            <input type="text" id="newConstrName" placeholder="Напр. Конструктор Техник Porsche 911" required>
+          </div>
+          <div class="row-2">
+            <div class="form-group">
+              <label>Штрихкод / Заказчик:</label>
+              <input type="text" id="newConstrBarcode" placeholder="ИП Чернов А.В. OZN..." required>
+            </div>
+            <div class="form-group">
+              <label>Штук в коробе (C):</label>
+              <input type="number" id="newConstrBoxesInBox" value="20" min="1" required>
+            </div>
+          </div>
+          <div class="row-3">
+            <div class="form-group">
+              <label>Размер коробки:</label>
+              <select id="newBoxSize" onchange="recalculateComplexity()">
+                <option value="1">Маленькая (1.0)</option>
+                <option value="1.5" selected>Средняя (1.5)</option>
+                <option value="2">Большая (2.0)</option>
+                <option value="2.5">Очень большая (2.5)</option>
+                <option value="3">Огромная (3.0)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Клапаны:</label>
+              <select id="newBoxValves" onchange="recalculateComplexity()">
+                <option value="0" selected>Пистолет (+0)</option>
+                <option value="0.1">Вручную (+0.1)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Слои ВПП:</label>
+              <select id="newBoxVpp" onchange="recalculateComplexity()">
+                <option value="0" selected>1 слой (+0)</option>
+                <option value="0.2">2 слоя (+0.2)</option>
+                <option value="-0.5">Без ВПП (-0.5)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="calc-card">
+          <div class="calc-sec-title">🧩 2. Вложения и фасовка</div>
+          <div class="row-2">
+            <div class="form-group">
+              <label>Пакеты деталей (шт.):</label>
+              <input type="number" id="newPacketsCount" value="2" min="0" oninput="recalculateComplexity()">
+            </div>
+            <div class="form-group">
+              <label>Инструкции (шт.):</label>
+              <input type="number" id="newManualsCount" value="1" min="0" oninput="recalculateComplexity()">
+            </div>
+          </div>
+          <div class="row-2">
+            <div class="form-group">
+              <label>Наклейки (шт.):</label>
+              <input type="number" id="newStickersCount" value="1" min="0" oninput="recalculateComplexity()">
+            </div>
+            <div class="form-group">
+              <label>Доп. вложения (шт.):</label>
+              <input type="number" id="newExtraInclusionsCount" value="0" min="0" oninput="recalculateComplexity()">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Доп. манипуляции с деталями (вскрытие и др.):</label>
+            <select id="newManipulations" onchange="recalculateComplexity()">
+              <option value="0" selected>Нет (+0)</option>
+              <option value="0.1">Да, простые (+0.1)</option>
+              <option value="0.2">Да, сложные (+0.2)</option>
+            </select>
+          </div>
+
+          <div class="calc-res-grid">
+            <div class="res-box">
+              <div class="res-lbl">Коэф. коробки (D)</div>
+              <div class="res-val" id="resBoxCoef">1.5</div>
+            </div>
+            <div class="res-box">
+              <div class="res-lbl">Всего вложений (E / G)</div>
+              <div class="res-val" id="resInclusionsVal">4 шт. (0.4)</div>
+            </div>
+            <div class="res-box main">
+              <div class="res-lbl">ИТОГОВЫЙ ОБЩИЙ КОЭФФИЦИЕНТ (I)</div>
+              <div class="res-val" id="resTotalCoef" style="font-size: 26px; color: #1a73e8;">1.9</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions-row">
+          <button type="submit" class="btn btn-primary" id="btnSaveConstructor" style="flex:1;">✓ Добавить конструктор в справочник</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    // ВСТАВЛЕН ВАШ РАЗВЕРНУТЫЙ URL ИЗ GOOGLE APPS SCRIPT:
+    const API_URL = "https://script.google.com/macros/s/AKfycbyi-Nhx8lEljyYp1zKTjFfDLfUEyaTjJVyrHZOHIEerTVGZY9ZaJEvr9HOmWpHpWapD/exec";
+
+    // Регистрация Service Worker для PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(() => console.log('PWA Service Worker успешно зарегистрирован'))
+          .catch((err) => console.log('Ошибка регистрации SW:', err));
+      });
+    }
+
+    // Универсальный вызов API к Google Таблицам с обходом CORS редиректов
+    async function callApi(action, data = null) {
+      if (data) {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: action, data: data })
+        });
+        return await response.json();
+      } else {
+        const response = await fetch(`${API_URL}?action=${action}`);
+        return await response.json();
+      }
+    }
+
+    var toastTimeout;
+    var ALL_CONSTRUCTORS_DATA = [];
+
+    function showToast(text, isError) {
+      clearTimeout(toastTimeout);
+      var toast = document.getElementById("toast");
+      toast.textContent = text;
+      toast.style.backgroundColor = isError ? "#c82333" : "#28a745";
+      toast.className = "show";
+      toastTimeout = setTimeout(function() { toast.className = ""; }, 3500);
+    }
+
+    function switchTab(tabId, el) {
+      document.querySelectorAll(".tab-content").forEach(function(tc) { tc.classList.remove("active"); });
+      document.querySelectorAll(".nav-tab").forEach(function(nt) { nt.classList.remove("active"); });
+      document.getElementById(tabId).classList.add("active");
+      el.classList.add("active");
+      if (tabId === "calcTab") {
+        recalculateComplexity();
+      }
+    }
+
+    function setSingleKizTable(num, btnElement) {
+      document.getElementById("selectedKizTable").value = num;
+      document.querySelectorAll("#kizTableButtons .btn-toggle").forEach(function(b) { b.classList.remove("active"); });
+      btnElement.classList.add("active");
+    }
+
+    function resetKizTableSelection() {
+      document.getElementById("selectedKizTable").value = "";
+      document.querySelectorAll("#kizTableButtons .btn-toggle").forEach(function(b) { b.classList.remove("active"); });
+    }
+
+    function forceClearKizField() {
+      var area = document.getElementById("kizCodes");
+      if (area) area.value = "";
+      var linkInput = document.getElementById("kizLink");
+      if (linkInput) linkInput.value = "";
+      resetKizTableSelection();
+      if (area) area.focus();
+    }
+
+    function updateConstructorsDropdown(list) {
+      var constrSelect = document.getElementById("kizConstructor");
+      var currentVal = constrSelect.value;
+      constrSelect.innerHTML = "<option value=''>-- Выберите из списка --</option>";
+      if (list && list.length > 0) {
+        list.forEach(function(c) {
+          var opt = document.createElement("option");
+          opt.value = c;
+          opt.textContent = c;
+          constrSelect.appendChild(opt);
+        });
+      }
+      if (currentVal) constrSelect.value = currentVal;
+    }
+
+    function onKizSearchInput(query) {
+      var q = (query || "").toLowerCase().trim();
+      var constrSelect = document.getElementById("kizConstructor");
+      constrSelect.innerHTML = "<option value=''>-- Выберите из списка --</option>";
+
+      var matched = [];
+      ALL_CONSTRUCTORS_DATA.forEach(function(item) {
+        if (!q || item.name.toLowerCase().indexOf(q) !== -1 || (item.barcode && item.barcode.toLowerCase().indexOf(q) !== -1)) {
+          matched.push(item.name);
+        }
+      });
+
+      matched.forEach(function(name) {
+        var opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        constrSelect.appendChild(opt);
+      });
+
+      if (matched.length === 1) {
+        constrSelect.value = matched[0];
+      }
+    }
+
+    function onKizSelectChanged(val) {
+      if (val) {
+        document.getElementById("kizSearchFilter").value = val;
+      }
+    }
+
+    async function refreshConstructorsList(showToastMsg) {
+      if (showToastMsg) showToast("Обновление списка конструкторов...");
+      try {
+        const resp = await callApi('getInitialData');
+        if (resp && resp.constructorsDetailed) {
+          ALL_CONSTRUCTORS_DATA = resp.constructorsDetailed;
+          updateConstructorsDropdown(resp.constructors);
+        }
+        if (showToastMsg) showToast("✓ Список конструкторов обновлен (" + (resp.constructors ? resp.constructors.length : 0) + " шт.)");
+      } catch (err) {
+        if (showToastMsg) showToast("Ошибка: " + err.message, true);
+      }
+    }
+
+    function searchCatalogConstructor(query) {
+      var resBox = document.getElementById("calcSearchResult");
+      var q = (query || "").toLowerCase().trim();
+      if (!q) {
+        resBox.innerHTML = "";
+        return;
+      }
+
+      var matches = ALL_CONSTRUCTORS_DATA.filter(function(item) {
+        return item.name.toLowerCase().indexOf(q) !== -1 || (item.barcode && item.barcode.toLowerCase().indexOf(q) !== -1);
+      });
+
+      if (matches.length === 0) {
+        resBox.innerHTML = "<div style='color:#a0aec0; font-size:13px; padding:6px 0;'>Ничего не найдено</div>";
+        return;
+      }
+
+      var html = "";
+      matches.slice(0, 5).forEach(function(item) {
+        html += "<div class='search-result-card'>" +
+          "<div style='font-weight:700; color:#1a202c; font-size:13.5px;'>" + item.name + "</div>" +
+          "<div style='font-size:12px; color:#4a5568; margin-top:2px;'><b>ШК:</b> " + item.barcode + "</div>" +
+          "<div style='display:flex; justify-content:space-between; margin-top:6px; font-size:12px;'>" +
+            "<span>В коробе: <b>" + item.boxesInBox + " шт.</b></span>" +
+            "<span>Коэф коробки: <b>" + item.coefBox + "</b></span>" +
+            "<span>Вложений: <b>" + item.totalInclusions + "</b></span>" +
+            "<span style='color:#2b6cb0; font-weight:800;'>Общий коэф: " + item.coefTotal + "</span>" +
+          "</div>" +
+        "</div>";
+      });
+      if (matches.length > 5) {
+        html += "<div style='font-size:11px; color:#718096; text-align:center; margin-top:4px;'>И еще " + (matches.length - 5) + " совпадений... Уточните запрос</div>";
+      }
+      resBox.innerHTML = html;
+    }
+
+    function recalculateComplexity() {
+      var baseSize = parseFloat(document.getElementById("newBoxSize").value) || 1.5;
+      var valves = parseFloat(document.getElementById("newBoxValves").value) || 0;
+      var vpp = parseFloat(document.getElementById("newBoxVpp").value) || 0;
+      var boxCoef = Math.round((baseSize + valves + vpp) * 10) / 10;
+
+      var packets = parseInt(document.getElementById("newPacketsCount").value, 10) || 0;
+      var manuals = parseInt(document.getElementById("newManualsCount").value, 10) || 0;
+      var stickers = parseInt(document.getElementById("newStickersCount").value, 10) || 0;
+      var extra = parseInt(document.getElementById("newExtraInclusionsCount").value, 10) || 0;
+      var manip = parseFloat(document.getElementById("newManipulations").value) || 0;
+
+      var inclusionsCount = packets + manuals + stickers + extra;
+      var inclusionsCoef = Math.round((inclusionsCount * 0.1 + manip) * 10) / 10;
+      var totalCoef = Math.round((boxCoef + inclusionsCoef) * 10) / 10;
+
+      document.getElementById("resBoxCoef").textContent = boxCoef.toFixed(1);
+      document.getElementById("resInclusionsVal").textContent = inclusionsCount + " шт. (" + inclusionsCoef.toFixed(1) + ")";
+      document.getElementById("resTotalCoef").textContent = totalCoef.toFixed(1);
+
+      return {
+        boxCoef: boxCoef,
+        inclusionsCount: inclusionsCount,
+        inclusionsCoef: inclusionsCoef,
+        totalCoef: totalCoef
+      };
+    }
+
+    async function submitNewConstructor() {
+      var name = document.getElementById("newConstrName").value.trim();
+      var barcode = document.getElementById("newConstrBarcode").value.trim();
+      var boxesInBox = document.getElementById("newConstrBoxesInBox").value.trim();
+
+      if (!name) {
+        showToast("Укажите название конструктора!", true);
+        return;
+      }
+      if (!barcode) {
+        showToast("Укажите штрихкод / заказчика!", true);
+        return;
+      }
+
+      var calc = recalculateComplexity();
+      var payload = {
+        name: name,
+        barcode: barcode,
+        boxesInBox: boxesInBox,
+        coefBox: calc.boxCoef,
+        inclusionsCount: calc.inclusionsCount,
+        coefExtra: 0.1,
+        coefInclusions: calc.inclusionsCoef,
+        coefTotal: calc.totalCoef
+      };
+
+      showToast("Добавление конструктора в справочник...");
+      document.getElementById("btnSaveConstructor").disabled = true;
+
+      try {
+        const res = await callApi('saveNewConstructorToCatalog', payload);
+        document.getElementById("btnSaveConstructor").disabled = false;
+        if (res && res.success) {
+          showToast("✓ Конструктор добавлен в строку " + res.row + "!");
+          ALL_CONSTRUCTORS_DATA.push(res.item);
+          var constrSelect = document.getElementById("kizConstructor");
+          var opt = document.createElement("option");
+          opt.value = res.item.name;
+          opt.textContent = res.item.name;
+          constrSelect.appendChild(opt);
+
+          document.getElementById("newConstrName").value = "";
+          document.getElementById("newConstrBarcode").value = "";
+          document.getElementById("calcSearchInput").value = res.item.name;
+          searchCatalogConstructor(res.item.name);
+        } else {
+          showToast("Ошибка: " + (res.error || "неизвестно"), true);
+        }
+      } catch (err) {
+        document.getElementById("btnSaveConstructor").disabled = false;
+        showToast("Ошибка связи: " + err.message, true);
+      }
+    }
+
+    var timerRunning = false;
+    var timerStartTime = null;
+    var timerIntervalId = null;
+
+    function formatTime2Digits(n) { return n < 10 ? "0" + n : n; }
+
+    function getTimeString(date) {
+      return formatTime2Digits(date.getHours()) + ":" +
+             formatTime2Digits(date.getMinutes()) + ":" +
+             formatTime2Digits(date.getSeconds());
+    }
+
+    function startTimer() {
+      if (timerRunning) {
+        showToast("Таймер уже запущен!");
+        return;
+      }
+      var startInp = document.getElementById("camStartTime");
+      var endInp = document.getElementById("camEndTime");
+      var durInp = document.getElementById("camDuration");
+
+      timerRunning = true;
+      timerStartTime = new Date();
+      startInp.value = getTimeString(timerStartTime);
+      endInp.value = "";
+      durInp.value = "";
+
+      timerIntervalId = setInterval(function() {
+        var diffMs = new Date() - timerStartTime;
+        var totalSec = Math.floor(diffMs / 1000);
+        var h = Math.floor(totalSec / 3600);
+        var m = Math.floor((totalSec % 3600) / 60);
+        var s = totalSec % 60;
+        document.getElementById("timerDisplay").textContent =
+          formatTime2Digits(h) + ":" + formatTime2Digits(m) + ":" + formatTime2Digits(s);
+      }, 1000);
+      showToast("Таймер отсмотра запущен");
+    }
+
+    function stopTimer() {
+      if (!timerRunning) {
+        showToast("Таймер сейчас не запущен", true);
+        return;
+      }
+      timerRunning = false;
+      clearInterval(timerIntervalId);
+      var stopTime = new Date();
+      var endInp = document.getElementById("camEndTime");
+      var durInp = document.getElementById("camDuration");
+      endInp.value = getTimeString(stopTime);
+
+      var diffMs = stopTime - timerStartTime;
+      var totalSec = Math.floor(diffMs / 1000);
+      var h = Math.floor(totalSec / 3600);
+      var m = Math.floor((totalSec % 3600) / 60);
+      var s = totalSec % 60;
+      var durStr = formatTime2Digits(h) + ":" + formatTime2Digits(m) + ":" + formatTime2Digits(s);
+      durInp.value = durStr;
+      document.getElementById("timerDisplay").textContent = durStr;
+      showToast("Таймер остановлен (" + durStr + ")");
+    }
+
+    var selectedCamTables = new Set();
+    var serverLastIntervals = {};
+
+    function toggleCamTable(num, btnElement) {
+      if (selectedCamTables.has(num)) {
+        selectedCamTables.delete(num);
+        btnElement.classList.remove("active");
+      } else {
+        selectedCamTables.add(num);
+        btnElement.classList.add("active");
+      }
+      var arr = Array.from(selectedCamTables).sort(function(a,b) { return a - b; });
+      document.getElementById("camTablesSelectedLabel").textContent = arr.length > 0 ? arr.join(", ") : "не выбрано";
+      updateTableIntervalHint(arr);
+    }
+
+    function updateTableIntervalHint(tablesArr) {
+      var hintBox = document.getElementById("tableHintBox");
+      if (tablesArr.length === 0) {
+        hintBox.style.display = "none";
+        return;
+      }
+      var hints = [];
+      tablesArr.forEach(function(t) {
+        if (serverLastIntervals[t]) {
+          hints.push("Стол " + t + ": прошлый отсмотр <b>" + serverLastIntervals[t] + "</b>");
+        } else {
+          hints.push("Стол " + t + ": нет недавних интервалов");
+        }
+      });
+      hintBox.innerHTML = "💡 <strong>История по столам:</strong><br>" + hints.join("<br>");
+      hintBox.style.display = "block";
+    }
+
+    function selectCamera(val, btn) {
+      document.getElementById("camCamera").value = val;
+      btn.parentElement.querySelectorAll(".btn-toggle").forEach(function(b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+    }
+
+    function selectWhatChecked(val, btn) {
+      document.getElementById("camWhatChecked").value = val;
+      btn.parentElement.querySelectorAll(".btn-toggle").forEach(function(b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+    }
+
+    function selectResult(val, btn) {
+      document.getElementById("camResult").value = val;
+      btn.parentElement.querySelectorAll(".btn-toggle").forEach(function(b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+    }
+
+    async function onDateChanged() {
+      var d = document.getElementById("camDate").value;
+      if (!d) return;
+      try {
+        const resp = await callApi('getTodayTotalInspectionTime&date=' + d);
+        document.getElementById("accumulatedTimeValue").textContent = (resp && resp.total) ? resp.total : "00:00:00";
+      } catch (e) {}
+    }
+
+    window.onload = async function() {
+      try {
+        const data = await callApi('getInitialData');
+        if (data && data.defaultDate) {
+          document.getElementById("kizDate").value = data.defaultDate;
+          document.getElementById("camDate").value = data.defaultDate;
+        }
+        if (data && data.defaultShift) {
+          document.getElementById("kizShift").value = data.defaultShift;
+        }
+        if (data && data.todayTotalTime) {
+          document.getElementById("accumulatedTimeValue").textContent = data.todayTotalTime;
+        }
+        if (data && data.constructorsDetailed) {
+          ALL_CONSTRUCTORS_DATA = data.constructorsDetailed;
+        }
+        if (data && data.constructors) {
+          updateConstructorsDropdown(data.constructors);
+        }
+        if (data && data.lastTableIntervals) {
+          serverLastIntervals = data.lastTableIntervals;
+        }
+        recalculateComplexity();
+      } catch (err) {
+        showToast("Ошибка загрузки данных: " + err.message, true);
+      }
+    };
+
+    async function submitKiz() {
+      var table = document.getElementById("selectedKizTable").value;
+      var kizInput = document.getElementById("kizCodes");
+      var linkInput = document.getElementById("kizLink");
+      var kizText = kizInput ? kizInput.value.trim() : "";
+
+      if (!table) {
+        showToast("Пожалуйста, выберите стол кнопкой!", true);
+        return;
+      }
+      if (!kizText) {
+        showToast("Поле КИЗов пустое!", true);
+        if (kizInput) kizInput.focus();
+        return;
+      }
+
+      var payload = {
+        date: document.getElementById("kizDate").value,
+        shift: document.getElementById("kizShift").value,
+        table: table,
+        constructorName: document.getElementById("kizConstructor").value,
+        link: linkInput ? linkInput.value.trim() : "",
+        kiz: kizText
+      };
+
+      showToast("Сохранение КИЗов в таблицу...");
+
+      try {
+        const res = await callApi('saveKizData', payload);
+        if (res && res.success) {
+          showToast("✓ КИЗы записаны (строка " + res.row + ")");
+          if (kizInput) kizInput.value = "";
+          if (linkInput) linkInput.value = "";
+          resetKizTableSelection();
+          if (kizInput) kizInput.focus();
+        } else {
+          showToast("Ошибка: " + (res.error || "неизвестно"), true);
+        }
+      } catch (err) {
+        showToast("Ошибка связи: " + err.message, true);
+      }
+    }
+
+    async function submitCamera() {
+      var tablesArr = Array.from(selectedCamTables).sort(function(a,b) { return a - b; });
+      if (tablesArr.length === 0) {
+        showToast("Выберите хотя бы один стол кнопками!", true);
+        return;
+      }
+
+      var payload = {
+        date: document.getElementById("camDate").value,
+        startTime: document.getElementById("camStartTime").value.trim(),
+        endTime: document.getElementById("camEndTime").value.trim(),
+        duration: document.getElementById("camDuration").value.trim(),
+        tables: tablesArr.join(","),
+        camera: document.getElementById("camCamera").value,
+        whatChecked: document.getElementById("camWhatChecked").value,
+        result: document.getElementById("camResult").value,
+        cameraInterval: document.getElementById("camInterval").value.trim(),
+        comments: document.getElementById("camComments").value.trim()
+      };
+
+      showToast("Сохранение отсмотра в таблицу...");
+
+      try {
+        const res = await callApi('saveCameraData', payload);
+        if (res && res.success) {
+          showToast("✓ Отсмотр записан (строка " + res.row + ")");
+          if (res.targetDate) {
+            const resp = await callApi('getTodayTotalInspectionTime&date=' + res.targetDate);
+            if (resp && resp.total) document.getElementById("accumulatedTimeValue").textContent = resp.total;
+          }
+          if (timerRunning) stopTimer();
+          document.getElementById("timerDisplay").textContent = "00:00:00";
+          document.getElementById("camStartTime").value = "";
+          document.getElementById("camEndTime").value = "";
+          document.getElementById("camDuration").value = "";
+          document.getElementById("camInterval").value = "";
+          document.getElementById("camComments").value = "";
+          if (payload.cameraInterval) {
+            tablesArr.forEach(function(t) { serverLastIntervals[t] = payload.cameraInterval; });
+            updateTableIntervalHint(tablesArr);
+          }
+        } else {
+          showToast("Ошибка: " + (res.error || "неизвестно"), true);
+        }
+      } catch (err) {
+        showToast("Ошибка связи: " + err.message, true);
+      }
+    }
+  </script>
+</body>
+</html>
