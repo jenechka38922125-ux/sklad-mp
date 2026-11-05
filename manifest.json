@@ -2,17 +2,25 @@
   "name": "Склад МП",
   "short_name": "Склад МП",
   "description": "Учёт КИЗов, отсмотр камер и калькулятор сложности",
-  "start_url": "./index.html",
-  "scope": "./",
+  "id": "/sklad-mp/",
+  "start_url": "/sklad-mp/",
+  "scope": "/sklad-mp/",
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
   "background_color": "#f4f6f9",
   "theme_color": "#1a73e8",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%231a73e8'/%3E%3Cpath d='M256 120l140 70v140L256 400 116 330V190z' fill='%23ffffff' opacity='0.2'/%3E%3Cpath d='M256 130L380 195 256 260 132 195z' fill='%23ffffff'/%3E%3Cpath d='M132 215l114 60v125l-114-60z' fill='%23e8eaed'/%3E%3Cpath d='M380 215l-114 60v125l114-60z' fill='%23dadce0'/%3E%3C/svg%3E",
-      "sizes": "192x192 512x512",
-      "type": "image/svg+xml",
+      "src": "/sklad-mp/icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/sklad-mp/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]
