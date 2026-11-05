@@ -2,19 +2,26 @@
   "name": "Склад МП",
   "short_name": "Склад МП",
   "description": "Учёт КИЗов, отсмотр камер и калькулятор сложности",
-  "id": "/sklad-mp/",
+  "id": "/sklad-mp/?v=2",
   "start_url": "/sklad-mp/",
   "scope": "/sklad-mp/",
   "display": "standalone",
   "display_override": ["standalone", "fullscreen"],
-  "background_color": "#f4f6f9",
+  "background_color": "#ffffff",
   "theme_color": "#1a73e8",
   "orientation": "portrait-primary",
   "icons": [
     {
       "src": "/sklad-mp/icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/sklad-mp/icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
