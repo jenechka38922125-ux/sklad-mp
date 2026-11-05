@@ -2,16 +2,12 @@
   "name": "E-COM ПФЦ",
   "short_name": "ПФЦ",
   "description": "Учёт склада и система управления сменами E-COM ПФЦ",
-  "id": "/sklad-mp/",
-  "start_url": "/sklad-mp/index.html",
-  "scope": "/",
-  "display": "fullscreen",
-  "display_override": [
-    "fullscreen",
-    "window-controls-overlay",
-    "standalone"
-  ],
-  "background_color": "#1a73e8",
+  "id": "/sklad-mp/?v=2",
+  "start_url": "/sklad-mp/",
+  "scope": "/sklad-mp/",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
+  "background_color": "#ffffff",
   "theme_color": "#1a73e8",
   "orientation": "portrait-primary",
   "icons": [
