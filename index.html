@@ -21,9 +21,24 @@
       --text: #1e293b; --text-muted: #64748b; --border: #cbd5e1; --selected-bg: #e8f0fe;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding: 8px; display: flex; justify-content: center; }
+    body { background-color: var(--bg); color: var(--text); padding: 8px; display: flex; flex-direction: column; align-items: center; }
     .container { width: 100%; max-width: 900px; background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 30px; display: none; }
     
+    /* Универсальный баннер установки (виден всегда вверху) */
+    .pwa-top-bar {
+      width: 100%; max-width: 900px; background: linear-gradient(135deg, #1a73e8, #0d47a1);
+      color: #fff; padding: 10px 14px; border-radius: 10px; margin-bottom: 8px;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12); z-index: 10000;
+    }
+    .pwa-top-bar span { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .btn-install-pwa {
+      background: #ffffff; color: #1a73e8; border: none; padding: 7px 14px;
+      border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 13px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15); transition: 0.2s;
+    }
+    .btn-install-pwa:hover { background: #f1f5f9; }
+
     /* Авторизация */
     #authOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 5000; padding: 20px; }
     .auth-card { background: #fff; width: 100%; max-width: 360px; border-radius: 14px; padding: 26px 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; }
@@ -34,19 +49,6 @@
 
     .user-bar { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 8px 14px; font-size: 12.5px; border-bottom: 1px solid var(--border); }
     .btn-logout { background: none; border: 1px solid var(--border); border-radius: 5px; padding: 4px 8px; font-size: 11px; cursor: pointer; color: #5f6368; font-weight: 600; }
-
-    /* Баннер установки PWA */
-    .pwa-install-banner {
-      display: none; background: linear-gradient(135deg, #1a73e8, #1557b0);
-      color: #fff; padding: 10px 14px; justify-content: space-between; align-items: center;
-      font-size: 13px; font-weight: 600;
-    }
-    .pwa-install-btn {
-      background: #fff; color: #1a73e8; border: none; padding: 6px 14px;
-      border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 13px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-    }
-    .pwa-install-btn:hover { background: #f1f3f4; }
 
     /* УРОВЕНЬ 1: Главные модули */
     .module-nav { display: flex; background: #0f172a; padding: 4px; gap: 4px; }
@@ -114,6 +116,12 @@
 </head>
 <body>
 
+  <!-- Универсальный баннер установки PWA (виден всегда вверху экрана) -->
+  <div class="pwa-top-bar" id="pwaTopBar">
+    <span>📲 Приложение E-COM ПФЦ</span>
+    <button type="button" class="btn-install-pwa" id="pwaGlobalInstallBtn" onclick="triggerPwaInstall()">Установить</button>
+  </div>
+
   <!-- Авторизация по PIN -->
   <div id="authOverlay">
     <div class="auth-card">
@@ -132,12 +140,6 @@
     <div class="user-bar">
       <div>Роль: <b id="userRoleBadge" style="color:var(--primary);">—</b></div>
       <button type="button" class="btn-logout" onclick="logout()">Сменить роль ➔</button>
-    </div>
-
-    <!-- Баннер установки PWA -->
-    <div id="pwaBanner" class="pwa-install-banner">
-      <span>📲 Установите приложение на экран</span>
-      <button id="pwaInstallBtn" class="pwa-install-btn" type="button">Установить</button>
     </div>
 
     <!-- УРОВЕНЬ 1: ГЛАВНЫЕ МОДУЛИ -->
@@ -635,35 +637,36 @@
       }
     }
 
-    // PWA Install Prompt
+    // PWA Установка
     let deferredPrompt = null;
-    const pwaBanner = document.getElementById('pwaBanner');
-    const pwaInstallBtn = document.getElementById('pwaInstallBtn');
-
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      if (pwaBanner) pwaBanner.style.display = 'flex';
+      const banner = document.getElementById('pwaTopBar');
+      if (banner) banner.style.display = 'flex';
     });
 
-    if (pwaInstallBtn) {
-      pwaInstallBtn.addEventListener('click', async () => {
-        if (!deferredPrompt) {
-          showToast('Используйте меню браузера для установки');
-          return;
-        }
+    async function triggerPwaInstall() {
+      if (deferredPrompt) {
         deferredPrompt.prompt();
-        const choiceResult = await deferredPrompt.userChoice;
-        if (choiceResult.outcome === 'accepted') {
-          pwaBanner.style.display = 'none';
+        const choice = await deferredPrompt.userChoice;
+        if (choice.outcome === 'accepted') {
+          showToast('✓ Приложение устанавливается...');
         }
         deferredPrompt = null;
-      });
+      } else {
+        // Если браузер уже подавил prompt или это Safari/Яндекс
+        const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+        if (isIos) {
+          alert('Чтобы установить приложение на iPhone:\n1. Нажмите внизу значок «Поделиться» (квадрат со стрелкой вверх)\n2. Выберите пункт «На экран "Домой"»');
+        } else {
+          alert('Чтобы установить приложение:\n1. Нажмите три точки в углу браузера (Chrome / Яндекс)\n2. Выберите «Установить приложение» или «Добавить на главный экран»');
+        }
+      }
     }
 
     window.addEventListener('appinstalled', () => {
-      if (pwaBanner) pwaBanner.style.display = 'none';
-      showToast('✓ Приложение успешно установлено!');
+      showToast('✓ Приложение успешно установлено на устройство!');
     });
 
     if ('serviceWorker' in navigator) {
@@ -1157,7 +1160,7 @@
         currentShiftListRows = rows || [];
         renderShiftListTable(currentShiftListRows);
       } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:red; padding:18px;">Ошибка: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:color:red; padding:18px;">Ошибка: ${e.message}</td></tr>`;
       }
     }
 
@@ -1276,7 +1279,7 @@
         renderStaffTable(currentEmployees);
         updateStaffSummary(currentEmployees, date, shift);
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:color:red; padding:18px;">Ошибка: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red; padding:18px;">Ошибка: ${err.message}</td></tr>`;
       }
     }
 
