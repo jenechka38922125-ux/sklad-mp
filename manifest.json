@@ -5,8 +5,7 @@
   "id": "/sklad-mp/?v=2",
   "start_url": "/sklad-mp/",
   "scope": "/sklad-mp/",
-  "display": "standalone",
-  "display_override": ["standalone", "fullscreen"],
+  "display": "fullscreen",
   "background_color": "#ffffff",
   "theme_color": "#1a73e8",
   "orientation": "portrait-primary",
@@ -30,20 +29,33 @@
       "purpose": "maskable"
     }
   ],
-  "categories": ["business", "productivity"],
+  "categories": [
+    "business",
+    "productivity"
+  ],
   "lang": "ru",
   "shortcuts": [
     {
       "name": "Запись на смену",
       "short_name": "Запись",
       "url": "/sklad-mp/index.html#regTab",
-      "icons": [{ "src": "/sklad-mp/icon.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/sklad-mp/icon.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "КИЗы",
       "short_name": "КИЗы",
       "url": "/sklad-mp/index.html#kizTab",
-      "icons": [{ "src": "/sklad-mp/icon.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/sklad-mp/icon.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }
