@@ -315,7 +315,7 @@
           </div>
           <div class="form-group">
             <label>Дата смены:</label>
-            <select id="regDate" onchange="checkCandidateDetails()" required></select>
+            <select id="regDate" onchange="onRegDateChanged()" required></select>
           </div>
         </div>
         <div class="form-group">
@@ -332,7 +332,7 @@
           <div class="form-group"><label>Время начала:</label><input type="text" id="regTime" placeholder="20:00"></div>
         </div>
         <div class="row-2">
-          <div class="form-group"><label>Ставка:</label><input type="text" id="regRate" placeholder="3000"></div>
+          <div class="form-group"><label>Ставка (Колонка N):</label><input type="text" id="regRate" placeholder="3000"></div>
           <div class="form-group"><label>Оплата:</label><select id="regPayment"><option value="после смены">После смены</option><option value="самозанятый">Самозанятый</option></select></div>
         </div>
         <div class="form-group"><label>Реферал / Кто пригласил:</label><input type="text" id="regReferral" placeholder="Необязательно"></div>
@@ -406,6 +406,18 @@
           <button type="button" class="btn-logout" onclick="copyStaffReport()">Скопировать</button>
         </div>
         <textarea id="staffReportBox" rows="6" readonly></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Подтверждение соответствия сотрудника (Fuzzy Match / New) -->
+  <div id="verifyCandidateModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">⚠️ Подтверждение сотрудника</div>
+      <div class="modal-body" id="verifyCandidateBody"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="rejectCandidateMatch()">Оставить как ввёл</button>
+        <button type="button" class="btn btn-blue" id="btnAcceptCandidateMatch" onclick="acceptCandidateMatch()">Да, применить</button>
       </div>
     </div>
   </div>
@@ -510,7 +522,7 @@
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyi-Nhx8lEljyYp1zKTjFfDLfUEyaTjJVyrHZOHIEerTVGZY9ZaJEvr9HOmWpHpWapD/exec";
 
-    // 6998 - HR (только HR), 4201 - Руководитель (всё)
+    // 6998 - HR, 4201 - Руководитель
     const ROLES_CONFIG = {
       "6998": { role: "HR", modules: ["hr"] },
       "4201": { role: "Руководитель", modules: ["sklad", "hr"] }
@@ -583,7 +595,6 @@
       if (targetContent) targetContent.classList.add("active");
       if (el) el.classList.add("active");
 
-      // Ленивая подгрузка
       if (tabId === 'checkAdminTab' && checklistRows.length === 0) loadChecklistData();
       if (tabId === 'referralTab') loadReferralsData();
       if (tabId === 'regTab' && staffInitData.dayDates.length === 0) loadStaffInitial();
@@ -706,7 +717,7 @@
       var btn = document.getElementById('btnSaveChecklistFinal');
       btn.disabled = true; btn.textContent = 'Сохранение...';
       try {
-        const res = await callApi('updateChecklistRow', {
+        await callApi('updateChecklistRow', {
           rowIndex: selectedChecklistRow.rowIndex,
           qty: document.getElementById('inputCheckQty').value,
           standardPay: document.getElementById('inputCheckStandardPay').value,
@@ -779,7 +790,7 @@
       var btn = document.getElementById('btnSaveReferralFinal');
       btn.disabled = true; btn.textContent = 'Сохранение...';
       try {
-        const res = await callApi('confirmReferralPayout', {
+        await callApi('confirmReferralPayout', {
           rowIndex: selectedReferralRow.rowIndex,
           friend: selectedReferralRow.friend,
           bonus1: selectedReferralRow.bonus1,
@@ -800,6 +811,7 @@
     // 3. HR: ЗАПИСЬ НА СМЕНУ
     // ==========================================
     var staffInitData = { dayDates: [], nightDates: [], vacanciesByShift: { 'день': [], 'ночь': [] } };
+    var pendingMatchedCandidate = null;
 
     async function loadStaffInitial() {
       try {
@@ -833,6 +845,11 @@
       updateGenMessage();
     }
 
+    function onRegDateChanged() {
+      checkCandidateDetails();
+      updateGenMessage();
+    }
+
     function onRegVacancyChanged() {
       var shift = document.getElementById("regShift").value;
       var vac = document.getElementById("regVacancy").value;
@@ -859,15 +876,37 @@
             if (res.phone && !document.getElementById("regPhone").value) document.getElementById("regPhone").value = res.phone;
           } else if (res.status === 'fuzzy') {
             alertBox.className = "status-alert alert-warning";
-            alertBox.textContent = `⚠️ Найдено соответствие: ${res.matchedName}`;
-            if (res.phone && !document.getElementById("regPhone").value) document.getElementById("regPhone").value = res.phone;
-            document.getElementById("regFio").value = res.matchedName;
+            alertBox.textContent = `⚠️ Найдено совпадение в справочнике: ${res.matchedName}`;
+            pendingMatchedCandidate = res;
+            document.getElementById("verifyCandidateBody").innerHTML = `
+              Введено: <b>${escapeHtml(fio)}</b><br>
+              В справочнике найдено: <b style="color:var(--primary); font-size:15px;">${escapeHtml(res.matchedName)}</b><br>
+              Телефон: <b>${escapeHtml(res.phone || 'нет')}</b><br><br>
+              Применить данные из справочника?
+            `;
+            openModal("verifyCandidateModal");
           } else {
             alertBox.className = "status-alert alert-warning";
             alertBox.textContent = res.message;
           }
         }
       } catch (e) {}
+      checkCandidateDetails();
+    }
+
+    function acceptCandidateMatch() {
+      if (pendingMatchedCandidate) {
+        document.getElementById("regFio").value = pendingMatchedCandidate.matchedName;
+        if (pendingMatchedCandidate.phone) document.getElementById("regPhone").value = pendingMatchedCandidate.phone;
+        document.getElementById("fioAlert").className = "status-alert alert-success";
+        document.getElementById("fioAlert").textContent = `✓ Применено из справочника: ${pendingMatchedCandidate.matchedName}`;
+      }
+      closeModal("verifyCandidateModal");
+      checkCandidateDetails();
+    }
+
+    function rejectCandidateMatch() {
+      closeModal("verifyCandidateModal");
       checkCandidateDetails();
     }
 
@@ -894,12 +933,20 @@
           }
         }
       } catch (e) {}
-      updateGenMessage();
     }
 
     async function submitRegistration() {
       var fio = document.getElementById("regFio").value.trim();
       if (!fio) { showToast("Укажите ФИО!", true); return; }
+
+      var warnBox = document.getElementById("candidateWarnings");
+      if (warnBox.style.display !== "none" && warnBox.innerText.includes("УЖЕ записан")) {
+        if (!confirm("Внимание! Сотрудник уже записан на эту дату/смену. Записать повторно?")) return;
+      }
+      if (warnBox.style.display !== "none" && warnBox.innerText.includes("ЧС")) {
+        if (!confirm("Внимание! Сотрудник находится в ЧС. Вы уверены, что хотите его записать?")) return;
+      }
+
       var payload = {
         shiftDate: document.getElementById("regDate").value,
         shiftType: document.getElementById("regShift").value,
@@ -921,12 +968,13 @@
           showToast("✓ Успешно записан на смену!");
           document.getElementById("regFio").value = "";
           document.getElementById("regPhone").value = "";
+          document.getElementById("regReferral").value = "";
           document.getElementById("fioAlert").style.display = "none";
           document.getElementById("candidateWarnings").style.display = "none";
         } else showToast("Ошибка: " + res.error, true);
       } catch (e) {
         document.getElementById("btnRegSubmit").disabled = false;
-        showToast("Ошибка: " + e.message, true);
+        showToast("Ошибка связи: " + e.message, true);
       }
     }
 
@@ -1028,7 +1076,7 @@
         const res = await callApi('deleteEmployeeFromShift', { rowNumber, expectedFio: fio, expectedDate: date });
         if (res && res.success) { showToast("✓ " + res.message); loadShiftList(); }
         else showToast("Ошибка: " + res.error, true);
-      } catch (e) { showToast("Ошибка: " + e.message, true); }
+      } catch (e) { showToast("Ошибка связи: " + e.message, true); }
     }
 
     function openMoveModal(rowNumber) {
@@ -1059,7 +1107,7 @@
         });
         if (res && res.success) { showToast("✓ " + res.message); loadShiftList(); }
         else showToast("Ошибка: " + res.error, true);
-      } catch (e) { showToast("Ошибка: " + e.message, true); }
+      } catch (e) { showToast("Ошибка связи: " + e.message, true); }
     }
 
     // ==========================================
