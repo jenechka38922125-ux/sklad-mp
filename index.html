@@ -62,7 +62,9 @@
 
     .btn { padding: 10px 16px; font-size: 14px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
     .btn-primary { background-color: var(--success); color: white; }
+    .btn-primary:hover { background-color: var(--success-hover); }
     .btn-blue { background-color: var(--primary); color: white; }
+    .btn-blue:hover { background-color: var(--primary-hover); }
     .btn-secondary { background-color: var(--danger); color: white; }
 
     .filter-panel { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 14px; }
@@ -78,7 +80,7 @@
     .badge-shift-night { background: #e0e7ff; color: #3730a3; }
     .badge-payout { background: #fef9c3; color: #854d0e; }
 
-    .status-alert { padding: 10px 14px; border-radius: 8px; margin-top: 8px; font-size: 13px; font-weight: 600; display: none; }
+    .status-alert { padding: 10px 14px; border-radius: 8px; margin-top: 8px; font-size: 13px; font-weight: 600; display: none; line-height: 1.4; }
     .alert-danger { background: #fce8e6; color: #c5221f; border: 1px solid #fad2cf; }
     .alert-warning { background: #fef7e0; color: #b06000; border: 1px solid #feefc3; }
     .alert-success { background: #e6f4ea; color: #137333; border: 1px solid #ceead6; }
@@ -322,11 +324,17 @@
           <label>Вакансия:</label>
           <select id="regVacancy" onchange="onRegVacancyChanged()" required></select>
         </div>
+
+        <!-- Поле ввода ФИО с кнопкой Проверить -->
         <div class="form-group">
           <label>ФИО сотрудника:</label>
-          <input type="text" id="regFio" placeholder="Фамилия Имя Отчество" onblur="verifyFioOnBlur()" required>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="regFio" placeholder="Фамилия Имя Отчество" oninput="resetCandidateVerification()" required>
+            <button type="button" class="btn btn-blue" id="btnVerifyFio" style="white-space:nowrap; padding:8px 14px;" onclick="verifyFioClick()">🔍 Проверить</button>
+          </div>
           <div id="fioAlert" class="status-alert"></div>
         </div>
+
         <div class="row-2">
           <div class="form-group"><label>Телефон:</label><input type="text" id="regPhone" placeholder="+7 999 000-00-00"></div>
           <div class="form-group"><label>Время начала:</label><input type="text" id="regTime" placeholder="20:00"></div>
@@ -410,14 +418,14 @@
     </div>
   </div>
 
-  <!-- Модальное окно: Подтверждение соответствия сотрудника (Fuzzy Match / New) -->
+  <!-- Модальное окно: Проверка и подтверждение кандидата -->
   <div id="verifyCandidateModal" class="modal-overlay">
     <div class="modal">
-      <div class="modal-header">⚠️ Подтверждение сотрудника</div>
+      <div class="modal-header" id="verifyCandidateHeader">⚠️ Проверка сотрудника</div>
       <div class="modal-body" id="verifyCandidateBody"></div>
-      <div class="modal-actions">
+      <div class="modal-actions" id="verifyCandidateActions">
         <button type="button" class="btn btn-secondary" onclick="rejectCandidateMatch()">Оставить как ввёл</button>
-        <button type="button" class="btn btn-blue" id="btnAcceptCandidateMatch" onclick="acceptCandidateMatch()">Да, применить</button>
+        <button type="button" class="btn btn-blue" id="btnAcceptCandidateMatch" onclick="acceptCandidateMatch()">Принять</button>
       </div>
     </div>
   </div>
@@ -808,10 +816,11 @@
     }
 
     // ==========================================
-    // 3. HR: ЗАПИСЬ НА СМЕНУ
+    // 3. HR: ЗАПИСЬ НА СМЕНУ (С ПРОВЕРКОЙ И ПОДТВЕРЖДЕНИЕМ)
     // ==========================================
     var staffInitData = { dayDates: [], nightDates: [], vacanciesByShift: { 'день': [], 'ночь': [] } };
-    var pendingMatchedCandidate = null;
+    var pendingVerification = null;
+    var isFioVerified = false;
 
     async function loadStaffInitial() {
       try {
@@ -862,50 +871,104 @@
       checkCandidateDetails();
     }
 
-    async function verifyFioOnBlur() {
+    function resetCandidateVerification() {
+      isFioVerified = false;
+      document.getElementById("fioAlert").style.display = "none";
+    }
+
+    async function verifyFioClick() {
       var fio = document.getElementById("regFio").value.trim();
       var alertBox = document.getElementById("fioAlert");
-      if (!fio) { alertBox.style.display = "none"; return; }
+      if (!fio) {
+        showToast("Введите ФИО для проверки!", true);
+        document.getElementById("regFio").focus();
+        return;
+      }
+      var btn = document.getElementById("btnVerifyFio");
+      btn.disabled = true; btn.textContent = "⏳ Проверка...";
+      
       try {
         const res = await callApi('verifyEmployeeWithSpravochnik', { fio });
+        btn.disabled = false; btn.textContent = "🔍 Проверить";
         if (res) {
+          pendingVerification = res;
           alertBox.style.display = "block";
+          
           if (res.status === 'exact') {
+            // Точное совпадение
+            isFioVerified = true;
             alertBox.className = "status-alert alert-success";
             alertBox.textContent = `✓ Найден в справочнике: ${res.matchedName}`;
-            if (res.phone && !document.getElementById("regPhone").value) document.getElementById("regPhone").value = res.phone;
+            if (res.phone && !document.getElementById("regPhone").value) {
+              document.getElementById("regPhone").value = res.phone;
+            }
+            showToast("✓ Сотрудник успешно найден в справочнике!");
           } else if (res.status === 'fuzzy') {
-            alertBox.className = "status-alert alert-warning";
-            alertBox.textContent = `⚠️ Найдено совпадение в справочнике: ${res.matchedName}`;
-            pendingMatchedCandidate = res;
+            // Найдено похожее соответствие
+            document.getElementById("verifyCandidateHeader").textContent = "⚠️ Найдено совпадение в справочнике";
             document.getElementById("verifyCandidateBody").innerHTML = `
-              Введено: <b>${escapeHtml(fio)}</b><br>
+              Введено пользователем: <b>${escapeHtml(fio)}</b><br><br>
               В справочнике найдено: <b style="color:var(--primary); font-size:15px;">${escapeHtml(res.matchedName)}</b><br>
-              Телефон: <b>${escapeHtml(res.phone || 'нет')}</b><br><br>
+              Телефон в базе: <b>${escapeHtml(res.phone || 'не указан')}</b><br><br>
               Применить данные из справочника?
+            `;
+            document.getElementById("verifyCandidateActions").innerHTML = `
+              <button type="button" class="btn btn-secondary" onclick="rejectCandidateMatch()">Оставить как ввёл</button>
+              <button type="button" class="btn btn-blue" onclick="acceptCandidateMatch()">✓ Принять из справочника</button>
             `;
             openModal("verifyCandidateModal");
           } else {
-            alertBox.className = "status-alert alert-warning";
-            alertBox.textContent = res.message;
+            // Новый сотрудник
+            document.getElementById("verifyCandidateHeader").textContent = "👤 Новый сотрудник";
+            document.getElementById("verifyCandidateBody").innerHTML = `
+              Сотрудник: <b>${escapeHtml(fio)}</b><br><br>
+              Отсутствует в «Справочнике сотрудников» и «Списке сотрудников».<br><br>
+              При записи он будет <b>автоматически добавлен</b> в справочник сотрудников как новый.
+            `;
+            document.getElementById("verifyCandidateActions").innerHTML = `
+              <button type="button" class="btn btn-secondary" onclick="closeModal('verifyCandidateModal')">Отмена</button>
+              <button type="button" class="btn btn-primary" onclick="confirmNewCandidate()">✓ Подтвердить нового</button>
+            `;
+            openModal("verifyCandidateModal");
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        btn.disabled = false; btn.textContent = "🔍 Проверить";
+        showToast("Ошибка проверки: " + e.message, true);
+      }
       checkCandidateDetails();
     }
 
     function acceptCandidateMatch() {
-      if (pendingMatchedCandidate) {
-        document.getElementById("regFio").value = pendingMatchedCandidate.matchedName;
-        if (pendingMatchedCandidate.phone) document.getElementById("regPhone").value = pendingMatchedCandidate.phone;
-        document.getElementById("fioAlert").className = "status-alert alert-success";
-        document.getElementById("fioAlert").textContent = `✓ Применено из справочника: ${pendingMatchedCandidate.matchedName}`;
+      if (pendingVerification) {
+        document.getElementById("regFio").value = pendingVerification.matchedName;
+        if (pendingVerification.phone) document.getElementById("regPhone").value = pendingVerification.phone;
+        isFioVerified = true;
+        var alertBox = document.getElementById("fioAlert");
+        alertBox.style.display = "block";
+        alertBox.className = "status-alert alert-success";
+        alertBox.textContent = `✓ Применено из справочника: ${pendingVerification.matchedName}`;
       }
       closeModal("verifyCandidateModal");
       checkCandidateDetails();
     }
 
     function rejectCandidateMatch() {
+      isFioVerified = true;
+      var alertBox = document.getElementById("fioAlert");
+      alertBox.style.display = "block";
+      alertBox.className = "status-alert alert-warning";
+      alertBox.textContent = `⚠️ Будет записан в исходном виде: ${document.getElementById("regFio").value}`;
+      closeModal("verifyCandidateModal");
+      checkCandidateDetails();
+    }
+
+    function confirmNewCandidate() {
+      isFioVerified = true;
+      var alertBox = document.getElementById("fioAlert");
+      alertBox.style.display = "block";
+      alertBox.className = "status-alert alert-warning";
+      alertBox.textContent = `👤 Новый сотрудник (будет добавлен в справочник)`;
       closeModal("verifyCandidateModal");
       checkCandidateDetails();
     }
@@ -939,6 +1002,15 @@
       var fio = document.getElementById("regFio").value.trim();
       if (!fio) { showToast("Укажите ФИО!", true); return; }
 
+      // Если сотрудник ещё не проверялся кнопкой, предлагаем проверить
+      if (!isFioVerified) {
+        if (!confirm("Сотрудник ещё не проверен по справочнику. Нажмите 'ОК', чтобы запустить быструю проверку перед записью.")) {
+          return;
+        }
+        await verifyFioClick();
+        if (!isFioVerified) return;
+      }
+
       var warnBox = document.getElementById("candidateWarnings");
       if (warnBox.style.display !== "none" && warnBox.innerText.includes("УЖЕ записан")) {
         if (!confirm("Внимание! Сотрудник уже записан на эту дату/смену. Записать повторно?")) return;
@@ -959,19 +1031,23 @@
         referral: document.getElementById("regReferral").value.trim(),
         status: "запись"
       };
+
       showToast("Запись сотрудника...");
       document.getElementById("btnRegSubmit").disabled = true;
       try {
         const res = await callApi('saveRegistration', payload);
         document.getElementById("btnRegSubmit").disabled = false;
         if (res && res.success) {
-          showToast("✓ Успешно записан на смену!");
+          showToast("✓ Успешно записан на смену и добавлен в справочник!");
           document.getElementById("regFio").value = "";
           document.getElementById("regPhone").value = "";
           document.getElementById("regReferral").value = "";
           document.getElementById("fioAlert").style.display = "none";
           document.getElementById("candidateWarnings").style.display = "none";
-        } else showToast("Ошибка: " + res.error, true);
+          isFioVerified = false;
+        } else {
+          showToast("Ошибка: " + res.error, true);
+        }
       } catch (e) {
         document.getElementById("btnRegSubmit").disabled = false;
         showToast("Ошибка связи: " + e.message, true);
