@@ -6,12 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   
   <!-- PWA настройки -->
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#1a73e8">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Склад МП">
-  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="apple-touch-icon" href="./icon.png">
 
   <style>
     :root {
@@ -31,6 +31,31 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg); color: var(--text); padding: 12px; display: flex; justify-content: center; }
     .container { width: 100%; max-width: 680px; background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 30px; }
+    
+    /* Баннер установки PWA */
+    .pwa-install-banner {
+      display: none;
+      background: linear-gradient(135deg, #1a73e8, #1557b0);
+      color: #fff;
+      padding: 10px 14px;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .pwa-install-btn {
+      background: #fff;
+      color: #1a73e8;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+    .pwa-install-btn:hover { background: #f1f3f4; }
+
     .nav-tabs { display: flex; background: #e8eaed; border-bottom: 2px solid var(--border); }
     .nav-tab { flex: 1; text-align: center; padding: 13px 8px; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--text-muted); border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap; }
     .nav-tab.active { background: var(--card-bg); color: var(--primary); border-bottom-color: var(--primary); }
@@ -99,6 +124,12 @@
 </head>
 <body>
   <div class="container">
+    <!-- Блок-кнопка установки PWA -->
+    <div id="pwaBanner" class="pwa-install-banner">
+      <span>📲 Установите приложение на устройство</span>
+      <button id="pwaInstallBtn" class="pwa-install-btn" type="button">Установить</button>
+    </div>
+
     <div class="nav-tabs">
       <div class="nav-tab active" onclick="switchTab('kizTab', this)">📦 Запись КИЗов</div>
       <div class="nav-tab" onclick="switchTab('cameraTab', this)">🎥 Отсмотр камер</div>
@@ -396,19 +427,48 @@
   <div id="toast"></div>
 
   <script>
-    // ВСТАВЛЕН ВАШ РАЗВЕРНУТЫЙ URL ИЗ GOOGLE APPS SCRIPT:
     const API_URL = "https://script.google.com/macros/s/AKfycbyi-Nhx8lEljyYp1zKTjFfDLfUEyaTjJVyrHZOHIEerTVGZY9ZaJEvr9HOmWpHpWapD/exec";
 
-    // Регистрация Service Worker для PWA
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(() => console.log('PWA Service Worker успешно зарегистрирован'))
-          .catch((err) => console.log('Ошибка регистрации SW:', err));
+    // Логика установки PWA
+    let deferredPrompt = null;
+    const pwaBanner = document.getElementById('pwaBanner');
+    const pwaInstallBtn = document.getElementById('pwaInstallBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (pwaBanner) pwaBanner.style.display = 'flex';
+    });
+
+    if (pwaInstallBtn) {
+      pwaInstallBtn.addEventListener('click', async () => {
+        if (!deferredPrompt) {
+          showToast('Используйте меню браузера: "Установить приложение" или "На экран Домой"');
+          return;
+        }
+        deferredPrompt.prompt();
+        const choiceResult = await deferredPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+          pwaBanner.style.display = 'none';
+        }
+        deferredPrompt = null;
       });
     }
 
-    // Универсальный вызов API к Google Таблицам с обходом CORS редиректов
+    window.addEventListener('appinstalled', () => {
+      if (pwaBanner) pwaBanner.style.display = 'none';
+      showToast('✓ Приложение успешно установлено!');
+    });
+
+    // Регистрация Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(() => console.log('PWA Service Worker зарегистрирован'))
+          .catch((err) => console.log('Ошибка SW:', err));
+      });
+    }
+
     async function callApi(action, data = null) {
       if (data) {
         const response = await fetch(API_URL, {
