@@ -13,7 +13,7 @@
   "icons": [
     {
       "src": "/sklad-mp/icon.png",
-      "sizes": "any",
+      "sizes": "96x96",
       "type": "image/png"
     }
   ]
