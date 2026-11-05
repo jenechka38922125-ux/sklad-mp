@@ -1,8 +1,8 @@
 {
-  "name": "Склад МП",
-  "short_name": "Склад МП",
-  "description": "Учёт КИЗов, отсмотр камер и калькулятор сложности",
-  "id": "/sklad-mp/?v=2",
+  "name": "E-COM ПФЦ",
+  "short_name": "E-COM ПФЦ",
+  "description": "Учёт склада и система управления сменами E-COM ПФЦ",
+  "id": "/sklad-mp/?v=4",
   "start_url": "/sklad-mp/",
   "scope": "/sklad-mp/",
   "display": "standalone",
